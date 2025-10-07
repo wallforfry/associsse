@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,12 +33,9 @@ const organizationSchema = z.object({
 
 type OrganizationFormData = z.infer<typeof organizationSchema>
 
-export default function OrganizationSettingsPage({
-  params,
-}: {
-  params: { orgSlug: string }
-}) {
-  const { orgSlug } = params
+export default function OrganizationSettingsPage() {
+  const params = useParams()
+  const orgSlug = params.orgSlug as string
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [organizationId, setOrganizationId] = useState<string | null>(null)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   DollarSign, 
@@ -11,12 +12,6 @@ import {
 import { ActivityList } from '@/components/activity-list'
 import { formatAmount } from '@/lib/bank-utils'
 
-interface DashboardPageProps {
-  params: {
-    orgSlug: string
-  }
-}
-
 interface DashboardStats {
   totalExpenses: number
   monthlyExpenses: number
@@ -25,7 +20,9 @@ interface DashboardStats {
   monthlyChange: number
 }
 
-export default function DashboardPage({ params }: DashboardPageProps) {
+export default function DashboardPage() {
+  const params = useParams()
+  const orgSlug = params.orgSlug as string
   const [stats, setStats] = useState<DashboardStats>({
     totalExpenses: 0,
     monthlyExpenses: 0,
@@ -40,7 +37,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       setLoading(true)
       
       // Fetch organization info first to get organizationId
-      const orgResponse = await fetch(`/api/organizations/${params.orgSlug}`)
+      const orgResponse = await fetch(`/api/organizations/${orgSlug}`)
       const orgData = orgResponse.ok ? await orgResponse.json() : { organization: { id: null, memberships: [] } }
       
       if (!orgData.organization?.id) {
@@ -99,7 +96,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     } finally {
       setLoading(false)
     }
-  }, [params.orgSlug])
+  }, [orgSlug])
 
   useEffect(() => {
     fetchDashboardStats()
@@ -265,7 +262,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ActivityList orgSlug={params.orgSlug} limit={10} />
+          <ActivityList orgSlug={orgSlug} limit={10} />
         </CardContent>
       </Card>
     </div>
