@@ -1,6 +1,6 @@
 # Associsse Docker Management
 
-.PHONY: help dev prod build clean logs shell db-migrate db-reset
+.PHONY: help dev prod build clean logs shell db-migrate db-reset storage-init
 
 # Default target
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "  db-migrate  - Run database migrations"
 	@echo "  db-reset    - Reset database (WARNING: destroys data)"
 	@echo "  db-studio   - Open Prisma Studio"
+	@echo "  storage-init - Initialize Minio storage"
 
 # Development environment
 dev:
@@ -64,6 +65,11 @@ db-studio:
 	@echo "Opening Prisma Studio..."
 	docker-compose exec app pnpm db:studio
 
+# Storage operations
+storage-init:
+	@echo "Initializing Minio storage..."
+	docker-compose exec app pnpm storage:init
+
 # Quick setup for new developers
 setup:
 	@echo "Setting up development environment..."
@@ -72,4 +78,5 @@ setup:
 	@echo "Waiting for services to be ready..."
 	sleep 15
 	docker-compose exec app pnpm db:migrate
+	docker-compose exec app pnpm storage:init
 	@echo "Setup complete! Application available at: http://localhost:3000"

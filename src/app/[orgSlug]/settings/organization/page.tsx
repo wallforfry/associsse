@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Building2, Save, Upload, MapPin, Phone, Mail, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { LogoUpload } from "@/components/logo-upload"
 
 const organizationSchema = z.object({
   name: z.string().min(2, 'Organization name must be at least 2 characters'),
@@ -26,7 +27,7 @@ const organizationSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   country: z.string().optional(),
-  taxId: z.string().optional(),
+  logo: z.string().optional(),
 })
 
 type OrganizationFormData = z.infer<typeof organizationSchema>
@@ -34,6 +35,7 @@ type OrganizationFormData = z.infer<typeof organizationSchema>
 export default function OrganizationSettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
+  const [organizationId, setOrganizationId] = useState<string | null>(null)
   
   const {
     register,
@@ -56,10 +58,10 @@ export default function OrganizationSettingsPage() {
       state: '',
       zipCode: '',
       country: '',
-      taxId: '',
+      logo: '',
     },
   })
-
+  
   // Load organization data on component mount
   useEffect(() => {
     const loadOrganizationData = async () => {
@@ -68,7 +70,8 @@ export default function OrganizationSettingsPage() {
         if (response.ok) {
           const data = await response.json()
           const org = data.organization
-          
+
+          setOrganizationId(org.id)
           reset({
             name: org.name || '',
             slug: org.slug || '',
@@ -81,7 +84,7 @@ export default function OrganizationSettingsPage() {
             state: org.state || '',
             zipCode: org.zipCode || '',
             country: org.country || '',
-            taxId: org.taxId || '',
+            logo: org.logo || '',
           })
         }
       } catch (error) {
@@ -138,6 +141,11 @@ export default function OrganizationSettingsPage() {
       setValue('slug', generateSlug(name))
     }
   }
+
+  const handleLogoChange = (logoUrl: string | null) => {
+    setValue('logo', logoUrl || '')
+  }
+
   if (isLoadingData) {
     return (
       <div className="space-y-6">
@@ -338,28 +346,6 @@ export default function OrganizationSettingsPage() {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Legal Information</CardTitle>
-              <CardDescription>
-                Tax ID and legal details for your organization
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="taxId">Tax ID / EIN</Label>
-                <Input 
-                  id="taxId" 
-                  placeholder="12-3456789"
-                  {...register('taxId')}
-                />
-                {errors.taxId && (
-                  <p className="text-sm text-red-600">{errors.taxId.message}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Sidebar */}
@@ -372,17 +358,13 @@ export default function OrganizationSettingsPage() {
                 Upload your organization's logo
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg">
-                <div className="text-center">
-                  <Building2 className="mx-auto h-8 w-8 text-gray-400" />
-                  <p className="text-sm text-gray-500 mt-2">No logo uploaded</p>
-                </div>
-              </div>
-              <Button variant="outline" className="w-full">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Logo
-              </Button>
+            <CardContent>
+              <LogoUpload
+                currentLogo={watch('logo')}
+                onLogoChange={handleLogoChange}
+                organizationId={organizationId || undefined}
+                disabled={isLoading}
+              />
             </CardContent>
           </Card>
 
@@ -415,9 +397,6 @@ export default function OrganizationSettingsPage() {
               >
                 <Save className="mr-2 h-4 w-4" />
                 {isLoading ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button variant="outline" className="w-full" type="button">
-                Preview Organization
               </Button>
             </CardContent>
           </Card>

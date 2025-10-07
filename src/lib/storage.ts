@@ -1,6 +1,6 @@
 import { Client } from 'minio'
 
-const minioClient = new Client({
+const MinioClient = new Client({
   endPoint: process.env.MINIO_ENDPOINT!,
   port: parseInt(process.env.MINIO_PORT || '9000'),
   useSSL: process.env.MINIO_USE_SSL === 'true',
@@ -13,13 +13,27 @@ const BUCKET_NAME = process.env.MINIO_BUCKET || 'associsse'
 // Initialize bucket if it doesn't exist
 export async function initializeStorage() {
   try {
-    const exists = await minioClient.bucketExists(BUCKET_NAME)
+    console.log('Initializing Minio storage...')
+    
+    // Check if bucket exists
+    const exists = await MinioClient.bucketExists(BUCKET_NAME)
+    
     if (!exists) {
-      await minioClient.makeBucket(BUCKET_NAME, 'us-east-1')
-      console.log(`Bucket ${BUCKET_NAME} created successfully`)
+      console.log(`Creating bucket: ${BUCKET_NAME}`)
+      await MinioClient.makeBucket(BUCKET_NAME, 'us-east-1')
+      console.log(`✅ Bucket ${BUCKET_NAME} created successfully`)
+    } else {
+      console.log(`✅ Bucket ${BUCKET_NAME} already exists`)
     }
+    
+    // Test connection by listing buckets
+    const buckets = await MinioClient.listBuckets()
+    console.log(`✅ Storage initialized successfully. Available buckets: ${buckets.length}`)
+    
+    return true
   } catch (error) {
-    console.error('Error initializing storage:', error)
+    console.error('❌ Error initializing storage:', error)
+    throw error
   }
 }
 
@@ -38,7 +52,7 @@ export async function uploadFile(
   const objectName = `${organizationId}/${folder}/${fileName}`
   
   try {
-    await minioClient.putObject(BUCKET_NAME, objectName, file, {
+    await MinioClient.putObject(BUCKET_NAME, objectName, file, file.length, {
       'Content-Type': contentType || 'application/octet-stream',
     })
     
@@ -51,7 +65,7 @@ export async function uploadFile(
 
 export async function getFileUrl(objectName: string): Promise<string> {
   try {
-    return await minioClient.presignedGetObject(BUCKET_NAME, objectName, 24 * 60 * 60) // 24 hours
+    return await MinioClient.presignedGetObject(BUCKET_NAME, objectName, 24 * 60 * 60) // 24 hours
   } catch (error) {
     console.error('Error getting file URL:', error)
     throw new Error('Failed to get file URL')
@@ -60,11 +74,11 @@ export async function getFileUrl(objectName: string): Promise<string> {
 
 export async function deleteFile(objectName: string): Promise<void> {
   try {
-    await minioClient.removeObject(BUCKET_NAME, objectName)
+    await MinioClient.removeObject(BUCKET_NAME, objectName)
   } catch (error) {
     console.error('Error deleting file:', error)
     throw new Error('Failed to delete file')
   }
 }
 
-export { minioClient }
+export { MinioClient }

@@ -78,7 +78,6 @@ model Organization {
   state       String?
   zipCode     String?
   country     String?
-  taxId       String?            @unique
   status      OrganizationStatus @default(ACTIVE)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt

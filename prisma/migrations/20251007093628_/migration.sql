@@ -94,7 +94,6 @@ CREATE TABLE "organizations" (
     "state" TEXT,
     "zipCode" TEXT,
     "country" TEXT,
-    "taxId" TEXT,
     "status" "OrganizationStatus" NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -246,9 +245,6 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 
 -- CreateIndex
 CREATE UNIQUE INDEX "organizations_slug_key" ON "organizations"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "organizations_taxId_key" ON "organizations"("taxId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "organization_memberships_userId_organizationId_key" ON "organization_memberships"("userId", "organizationId");

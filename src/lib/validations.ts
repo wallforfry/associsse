@@ -29,7 +29,6 @@ export const createOrganizationSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   country: z.string().optional(),
-  taxId: z.string().optional(),
 })
 
 export const updateOrganizationSchema = createOrganizationSchema.partial()

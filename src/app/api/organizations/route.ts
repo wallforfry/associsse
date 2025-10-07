@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getProxyUrl } from '@/lib/file-utils'
 import { z } from 'zod'
 
 const organizationSchema = z.object({
@@ -18,7 +19,7 @@ const organizationSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   country: z.string().optional(),
-  taxId: z.string().optional(),
+  logo: z.string().optional(),
 })
 
 const organizationUpdateSchema = organizationSchema.partial()
@@ -92,14 +93,20 @@ export async function PUT(request: NextRequest) {
         state: validatedData.state || null,
         zipCode: validatedData.zipCode || null,
         country: validatedData.country || null,
-        taxId: validatedData.taxId || null,
+        logo: validatedData.logo || null,
         updatedAt: new Date(),
       }
     })
 
+    // Convert logo URL to proxy URL if it exists
+    const organizationWithProxyUrl = {
+      ...updatedOrganization,
+      logo: getProxyUrl(updatedOrganization.logo)
+    }
+
     return NextResponse.json({
       message: 'Organization updated successfully',
-      organization: updatedOrganization
+      organization: organizationWithProxyUrl
     })
 
   } catch (error) {
@@ -148,8 +155,14 @@ export async function GET() {
       )
     }
 
+    // Convert logo URL to proxy URL if it exists
+    const organizationWithProxyUrl = {
+      ...membership.organization,
+      logo: getProxyUrl(membership.organization.logo)
+    }
+
     return NextResponse.json({
-      organization: membership.organization
+      organization: organizationWithProxyUrl
     })
 
   } catch (error) {
@@ -231,7 +244,6 @@ export async function PATCH(request: NextRequest) {
     if (validatedData.state !== undefined) updateData.state = validatedData.state || null
     if (validatedData.zipCode !== undefined) updateData.zipCode = validatedData.zipCode || null
     if (validatedData.country !== undefined) updateData.country = validatedData.country || null
-    if (validatedData.taxId !== undefined) updateData.taxId = validatedData.taxId || null
 
     // Update the organization
     const updatedOrganization = await db.organization.update({
