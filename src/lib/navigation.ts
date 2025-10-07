@@ -29,18 +29,6 @@ export const navigationItems: NavigationItem[] = [
     description: 'Overview and key metrics',
   },
   {
-    name: 'Projects',
-    href: '/projects',
-    icon: Heart,
-    description: 'Manage fundraising projects',
-  },
-  {
-    name: 'Donations',
-    href: '/donations',
-    icon: DollarSign,
-    description: 'Track and manage donations',
-  },
-  {
     name: 'Expenses',
     href: '/expenses',
     icon: Receipt,
