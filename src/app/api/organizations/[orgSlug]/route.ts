@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getProxyUrl } from '@/lib/file-utils'
+import { validateMembershipBySlug, validateRoleBySlug } from '@/lib/auth-utils'
 import { z } from 'zod'
 
 const updateOrganizationSchema = z.object({
@@ -29,13 +28,9 @@ export async function GET(
   { params }: { params: { orgSlug: string } }
   ) {
     try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
+    const authResult = await validateMembershipBySlug(params.orgSlug)
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Get organization by slug
@@ -68,27 +63,11 @@ export async function GET(
       )
     }
 
-    // Check if user is a member of this organization
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId: organization.id,
-        status: 'ACTIVE'
-      }
-    })
-
-    if (!membership) {
-      return NextResponse.json(
-        { message: 'Access denied. You are not a member of this organization.' },
-        { status: 403 }
-      )
-    }
-
     // Return organization with proxy URL and user's role
     const organizationWithProxyUrl = {
       ...organization,
       logo: getProxyUrl(organization.logo),
-      role: membership.role,
+      role: authResult.membership!.role,
       createdAt: organization.createdAt.toISOString(),
       updatedAt: organization.updatedAt.toISOString(),
     }
@@ -110,17 +89,13 @@ export async function PATCH(
   { params }: { params: { orgSlug: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     const body = await request.json()
     const validatedData = updateOrganizationSchema.parse(body)
+
+    const authResult = await validateRoleBySlug(params.orgSlug, ['ADMIN', 'OWNER'])
+    if (!authResult.success) {
+      return authResult.response
+    }
 
     // Get organization by slug
     const organization = await db.organization.findUnique({
@@ -131,30 +106,6 @@ export async function PATCH(
       return NextResponse.json(
         { message: 'Organization not found' },
         { status: 404 }
-      )
-    }
-
-    // Check if user is a member and has permission to update
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId: organization.id,
-        status: 'ACTIVE'
-      }
-    })
-
-    if (!membership) {
-      return NextResponse.json(
-        { message: 'Access denied. You are not a member of this organization.' },
-        { status: 403 }
-      )
-    }
-
-    // Check if user has permission to update organization (ADMIN or OWNER)
-    if (!['ADMIN', 'OWNER'].includes(membership.role)) {
-      return NextResponse.json(
-        { message: 'Insufficient permissions to update organization' },
-        { status: 403 }
       )
     }
 
@@ -218,7 +169,7 @@ export async function PATCH(
     const organizationWithProxyUrl = {
       ...updatedOrganization,
       logo: getProxyUrl(updatedOrganization.logo),
-      role: membership.role,
+      role: authResult.membership!.role,
       createdAt: updatedOrganization.createdAt.toISOString(),
       updatedAt: updatedOrganization.updatedAt.toISOString(),
     }
@@ -251,13 +202,9 @@ export async function DELETE(
   { params }: { params: { orgSlug: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
+    const authResult = await validateRoleBySlug(params.orgSlug, ['OWNER'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Get organization by slug
@@ -272,35 +219,11 @@ export async function DELETE(
       )
     }
 
-    // Check if user is a member and has permission to delete
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId: organization.id,
-        status: 'ACTIVE'
-      }
-    })
-
-    if (!membership) {
-      return NextResponse.json(
-        { message: 'Access denied. You are not a member of this organization.' },
-        { status: 403 }
-      )
-    }
-
-    // Only OWNER can delete the organization
-    if (membership.role !== 'OWNER') {
-      return NextResponse.json(
-        { message: 'Only organization owners can delete the organization' },
-        { status: 403 }
-      )
-    }
-
     // Check if there are other active members
     const otherMembers = await db.organizationMembership.count({
       where: {
         organizationId: organization.id,
-        userId: { not: session.user.id },
+        userId: { not: authResult.userId },
         status: 'ACTIVE'
       }
     })

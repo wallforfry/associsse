@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validateMembership } from '@/lib/auth-utils'
 import { createExpenseSchema } from '@/lib/validations'
 import { z } from 'zod'
 import { Expense } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { searchParams } = new URL(request.url)
     const organizationId = searchParams.get('organizationId')
 
@@ -23,17 +17,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if user is member of the organization
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId,
-        status: 'ACTIVE',
-      },
-    })
-
-    if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const authResult = await validateMembership(organizationId)
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const expenses = await db.expense.findMany({
@@ -74,11 +60,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
     const { organizationId, ...expenseData } = body
 
@@ -89,17 +70,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user is member of the organization
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId,
-        status: 'ACTIVE',
-      },
-    })
-
-    if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const authResult = await validateMembership(organizationId)
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Validate expense data
@@ -109,7 +82,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...validatedData,
         organizationId,
-        createdById: session.user.id,
+        createdById: authResult.userId,
       },
       include: {
         category: true,

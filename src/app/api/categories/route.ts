@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validateRole } from '@/lib/auth-utils'
 import { createCategorySchema } from '@/lib/validations'
 import { z } from 'zod'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { searchParams } = new URL(request.url)
     const organizationId = searchParams.get('organizationId')
 
@@ -22,17 +16,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if user is member of the organization
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId,
-        status: 'ACTIVE',
-      },
-    })
-
-    if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const authResult = await validateRole(organizationId, ['MEMBER', 'ADMIN', 'OWNER'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Check if this is for the management page (no isActive filter)
@@ -67,11 +53,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
     const { organizationId, ...categoryData } = body
 
@@ -82,26 +63,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user is member of the organization
-    const membership = await db.organizationMembership.findFirst({
-      where: {
-        userId: session.user.id,
-        organizationId,
-        status: 'ACTIVE',
-      },
-    })
-
-    if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Only admin/owner can create categories
-    const canCreate = 
-      membership.role === 'ADMIN' ||
-      membership.role === 'OWNER'
-
-    if (!canCreate) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const authResult = await validateRole(organizationId, ['ADMIN', 'OWNER'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Validate category data

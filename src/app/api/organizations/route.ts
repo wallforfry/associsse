@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { getProxyUrl } from "@/lib/file-utils"
+import { validateSession } from "@/lib/auth-utils"
 import { z } from "zod"
 import { Organization, OrganizationMembership } from "@/lib/prisma"
 
@@ -29,16 +28,15 @@ const createOrganizationSchema = z.object({
 // GET /api/organizations - List all organizations user is a member of
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    const authResult = await validateSession()
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Get all organizations the user is a member of
     const memberships = await db.organizationMembership.findMany({
       where: {
-        userId: session.user.id,
+        userId: authResult.userId,
         status: "ACTIVE",
       },
       include: {
@@ -126,10 +124,9 @@ export async function GET() {
 // POST /api/organizations - Create a new organization
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    const authResult = await validateSession()
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const body = await request.json()
@@ -168,7 +165,7 @@ export async function POST(request: NextRequest) {
     // Create membership for the creator as OWNER
     await db.organizationMembership.create({
       data: {
-        userId: session.user.id,
+        userId: authResult.userId,
         organizationId: organization.id,
         role: "OWNER",
         status: "ACTIVE",

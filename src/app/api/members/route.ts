@@ -1,23 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validateSession } from '@/lib/auth-utils'
+import { OrganizationMembership } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
+    const authResult = await validateSession()
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Get user's organization membership
     const userMembership = await db.organizationMembership.findFirst({
       where: {
-        userId: session.user.id,
+        userId: authResult.userId,
         status: 'ACTIVE'
       },
       include: {
@@ -53,7 +49,7 @@ export async function GET() {
     })
 
     return NextResponse.json({
-      members: members.map(member => ({
+      members: members.map((member: OrganizationMembership & { user: { id: string; name: string | null; email: string; image: string | null } }) => ({
         id: member.id,
         user: member.user,
         role: member.role,
