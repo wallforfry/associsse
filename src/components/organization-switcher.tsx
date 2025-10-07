@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Building2, ChevronDown, Check } from 'lucide-react'
+import { Building2, Check, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -143,7 +143,7 @@ export function OrganizationSwitcher({
               </span>
             )}
           </div>
-          <ChevronDown className="h-4 w-4 ml-auto" />
+          <ChevronUp className="h-4 w-4 ml-auto" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">

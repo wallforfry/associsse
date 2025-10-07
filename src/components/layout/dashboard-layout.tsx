@@ -48,11 +48,11 @@ export function DashboardLayout({
       <SidebarInset className="flex flex-col min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             {organizationName && (
               <span className="text-lg font-semibold">{organizationName}</span>
             )}
-          </div>
+          </div> */}
           <div className="ml-auto flex items-center gap-2">
             {session?.user && (
               <DropdownMenu>
