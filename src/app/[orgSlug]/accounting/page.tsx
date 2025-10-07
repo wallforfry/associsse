@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button"
 import { PiggyBank, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
 
-export default function AccountingPage({
+export default async function AccountingPage({
   params,
 }: {
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }) {
-  const { orgSlug } = params
+  const { orgSlug } = await params
 
   return (
     <div className="space-y-6">

@@ -4,11 +4,8 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
   
-  // Experimental features
-  experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: ['@prisma/client'],
-  },
+  // Enable server components
+  serverExternalPackages: ['@prisma/client'],
   
   // Image optimization
   images: {
