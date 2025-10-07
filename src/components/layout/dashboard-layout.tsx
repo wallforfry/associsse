@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { User, LogOut, Settings } from "lucide-react"
 import Link from "next/link"
 import {
@@ -46,7 +45,7 @@ export function DashboardLayout({
         organizationName={organizationName}
         organizationSlug={organizationSlug}
       />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
@@ -109,9 +108,11 @@ export function DashboardLayout({
             )}
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 min-w-0">
           <BreadcrumbNav organizationSlug={organizationSlug} />
-          {children}
+          <div className="min-w-0">
+            {children}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

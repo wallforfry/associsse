@@ -147,14 +147,14 @@ export function ExpenseList({
 
   if (expenses.length === 0) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             No Expenses Found
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex items-center justify-center">
           <p className="text-gray-600">
             No expenses have been created yet. Create your first expense to get started.
           </p>
@@ -165,15 +165,15 @@ export function ExpenseList({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Expenses ({expenses.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -297,7 +297,8 @@ export function ExpenseList({
               initialData={{
                 ...editingExpense,
                 categoryId: editingExpense.category?.id || '',
-              } as any}
+                date: new Date(editingExpense.date),
+              }}
               isEditing={true}
               onSuccess={handleFormSuccess}
               onCancel={() => setIsEditDialogOpen(false)}

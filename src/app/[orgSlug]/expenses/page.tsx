@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ExpenseForm } from '@/components/expense-form'
@@ -49,7 +49,7 @@ export default function ExpensesPage() {
   const totalNet = totalTTC - totalTaxes
   const pendingExpenses = expenses.filter(e => e.status === 'PENDING').length
 
-  const fetchOrganization = async () => {
+  const fetchOrganization = useCallback(async () => {
     try {
       const response = await fetch(`/api/organizations/${orgSlug}`)
       if (response.ok) {
@@ -61,9 +61,9 @@ export default function ExpensesPage() {
     } catch (error) {
       console.error('Error fetching organization:', error)
     }
-  }
+  }, [orgSlug])
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     if (!organizationId) {
       return
     }
@@ -81,9 +81,9 @@ export default function ExpensesPage() {
       console.error('Error fetching expenses:', error)
       toast.error('Failed to load expenses')
     }
-  }
+  }, [organizationId])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     if (!organizationId) {
       return
     }
@@ -101,26 +101,26 @@ export default function ExpensesPage() {
       console.error('Error fetching categories:', error)
       toast.error('Failed to load categories')
     }
-  }
+  }, [organizationId])
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true)
     try {
       await Promise.all([fetchExpenses(), fetchCategories()])
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [fetchExpenses, fetchCategories])
 
   useEffect(() => {
     fetchOrganization()
-  }, [orgSlug])
+  }, [fetchOrganization])
 
   useEffect(() => {
     if (organizationId) {
       refreshData()
     }
-  }, [organizationId])
+  }, [organizationId, refreshData])
 
   const handleFormSuccess = () => {
     setIsAddDialogOpen(false)
@@ -160,94 +160,101 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-gray-600">Track and manage organization expenses</p>
+    <div className="flex flex-col h-full">
+      {/* Header Section */}
+      <div className="flex-shrink-0 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
+            <p className="text-gray-600">Track and manage organization expenses</p>
+          </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Expense
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Expense</DialogTitle>
+              </DialogHeader>
+              <ExpenseForm
+                organizationId={organizationId}
+                categories={categories}
+                onSuccess={handleFormSuccess}
+                onCancel={() => setIsAddDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Expense</DialogTitle>
-            </DialogHeader>
-            <ExpenseForm
-              organizationId={organizationId}
-              categories={categories}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsAddDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total TTC</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalTTC)}</div>
-            <p className="text-xs text-muted-foreground">
-              Including all taxes
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Taxes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalTaxes)}</div>
-            <p className="text-xs text-muted-foreground">
-              Tax amount paid
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Amount</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalNet)}</div>
-            <p className="text-xs text-muted-foreground">
-              TTC minus taxes
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingExpenses}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting approval
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex-shrink-0 mb-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total TTC</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(totalTTC)}</div>
+              <p className="text-xs text-muted-foreground">
+                Including all taxes
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Taxes</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(totalTaxes)}</div>
+              <p className="text-xs text-muted-foreground">
+                Tax amount paid
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Net Amount</CardTitle>
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(totalNet)}</div>
+              <p className="text-xs text-muted-foreground">
+                TTC minus taxes
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingExpenses}</div>
+              <p className="text-xs text-muted-foreground">
+                Awaiting approval
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Expenses List */}
-      <ExpenseList
-        expenses={expenses}
-        categories={categories}
-        organizationId={organizationId}
-        onRefresh={refreshData}
-        canEdit={true}
-        canApprove={true}
-      />
+      {/* Expenses List - Takes remaining space */}
+      <div className="flex-1 min-h-0">
+        <ExpenseList
+          expenses={expenses}
+          categories={categories}
+          organizationId={organizationId}
+          onRefresh={refreshData}
+          canEdit={true}
+          canApprove={true}
+        />
+      </div>
     </div>
   )
 }
