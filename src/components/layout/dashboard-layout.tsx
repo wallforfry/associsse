@@ -1,8 +1,26 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { Sidebar } from './sidebar'
-import { Header } from './header'
+import { useSession, signOut } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { User, LogOut, Settings } from 'lucide-react'
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
+import { AppSidebar } from './app-sidebar'
+import { BreadcrumbNav } from './breadcrumb-nav'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -15,21 +33,79 @@ export function DashboardLayout({
   organizationName, 
   organizationSlug 
 }: DashboardLayoutProps) {
+  const { data: session } = useSession()
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' })
+  }
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar 
+    <SidebarProvider>
+      <AppSidebar 
         organizationName={organizationName}
         organizationSlug={organizationSlug}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header 
-          organizationName={organizationName}
-          organizationSlug={organizationSlug}
-        />
-        <main className="flex-1 overflow-y-auto p-6">
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2">
+            {organizationName && (
+              <>
+                <span className="text-lg font-semibold">{organizationName}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {organizationSlug}
+                </Badge>
+              </>
+            )}
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {session?.user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                      <AvatarFallback>
+                        {session.user.name?.charAt(0) || session.user.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session.user.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <BreadcrumbNav organizationSlug={organizationSlug} />
           {children}
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
