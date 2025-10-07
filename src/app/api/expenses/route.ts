@@ -54,7 +54,14 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(expenses)
+    // Convert Decimal fields to numbers for proper JSON serialization
+    const serializedExpenses = expenses.map((expense: any) => ({
+      ...expense,
+      amountTTC: Number(expense.amountTTC),
+      taxesAmount: Number(expense.taxesAmount),
+    }))
+    
+    return NextResponse.json(serializedExpenses)
   } catch (error) {
     console.error('Error fetching expenses:', error)
     return NextResponse.json(
@@ -115,7 +122,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(expense, { status: 201 })
+    // Convert Decimal fields to numbers for proper JSON serialization
+    const serializedExpense = {
+      ...expense,
+      amountTTC: Number(expense.amountTTC),
+      taxesAmount: Number(expense.taxesAmount),
+    }
+    
+    return NextResponse.json(serializedExpense, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

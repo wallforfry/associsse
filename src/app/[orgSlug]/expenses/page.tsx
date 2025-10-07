@@ -54,7 +54,6 @@ export default function ExpensesPage() {
       const response = await fetch(`/api/organizations/${orgSlug}`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Organization data:', data)
         setOrganizationId(data.organization.id)
       } else {
         console.error('Failed to fetch organization:', response.status, response.statusText)
@@ -66,16 +65,13 @@ export default function ExpensesPage() {
 
   const fetchExpenses = async () => {
     if (!organizationId) {
-      console.log('No organizationId, skipping fetchExpenses')
       return
     }
 
     try {
-      console.log('Fetching expenses for organizationId:', organizationId)
       const response = await fetch(`/api/expenses?organizationId=${organizationId}`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Expenses data:', data)
         setExpenses(data)
       } else {
         console.error('Failed to fetch expenses:', response.status, response.statusText)
@@ -89,16 +85,13 @@ export default function ExpensesPage() {
 
   const fetchCategories = async () => {
     if (!organizationId) {
-      console.log('No organizationId, skipping fetchCategories')
       return
     }
 
     try {
-      console.log('Fetching categories for organizationId:', organizationId)
       const response = await fetch(`/api/categories?organizationId=${organizationId}`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Categories data:', data)
         setCategories(data)
       } else {
         console.error('Failed to fetch categories:', response.status, response.statusText)
@@ -120,12 +113,10 @@ export default function ExpensesPage() {
   }
 
   useEffect(() => {
-    console.log('useEffect: fetchOrganization called with orgSlug:', orgSlug)
     fetchOrganization()
   }, [orgSlug])
 
   useEffect(() => {
-    console.log('useEffect: organizationId changed to:', organizationId)
     if (organizationId) {
       refreshData()
     }
@@ -163,9 +154,6 @@ export default function ExpensesPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
-        <div className="text-sm text-gray-500">
-          Debug info: orgSlug={orgSlug}, organizationId={organizationId}, isLoading={isLoading.toString()}
         </div>
       </div>
     )

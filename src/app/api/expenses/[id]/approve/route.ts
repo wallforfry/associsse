@@ -72,7 +72,14 @@ export async function POST(
       },
     })
 
-    return NextResponse.json(expense)
+    // Convert Decimal fields to numbers for proper JSON serialization
+    const serializedExpense = {
+      ...expense,
+      amountTTC: Number(expense.amountTTC),
+      taxesAmount: Number(expense.taxesAmount),
+    }
+    
+    return NextResponse.json(serializedExpense)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

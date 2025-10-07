@@ -54,7 +54,14 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    return NextResponse.json(expense)
+    // Convert Decimal fields to numbers for proper JSON serialization
+    const serializedExpense = {
+      ...expense,
+      amountTTC: Number(expense.amountTTC),
+      taxesAmount: Number(expense.taxesAmount),
+    }
+    
+    return NextResponse.json(serializedExpense)
   } catch (error) {
     console.error('Error fetching expense:', error)
     return NextResponse.json(
@@ -128,7 +135,14 @@ export async function PUT(
       },
     })
 
-    return NextResponse.json(expense)
+    // Convert Decimal fields to numbers for proper JSON serialization
+    const serializedExpense = {
+      ...expense,
+      amountTTC: Number(expense.amountTTC),
+      taxesAmount: Number(expense.taxesAmount),
+    }
+    
+    return NextResponse.json(serializedExpense)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

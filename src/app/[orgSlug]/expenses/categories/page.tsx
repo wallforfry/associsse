@@ -122,9 +122,6 @@ export default function CategoriesPage() {
             </Card>
           ))}
         </div>
-        <div className="text-sm text-gray-500">
-          Debug info: orgSlug={orgSlug}, organizationId={organizationId}, isLoading={isLoading.toString()}
-        </div>
       </div>
     )
   }
