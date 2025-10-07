@@ -18,7 +18,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { getNavigationItems, isActiveNavigationItem } from '@/lib/navigation'
+import { getNavigationItems, isActiveNavigationItem, type NavigationItem } from '@/lib/navigation'
+import { OrganizationSwitcher } from '@/components/organization-switcher'
 
 interface AppSidebarProps {
   organizationName?: string
@@ -30,7 +31,7 @@ export function AppSidebar({ organizationName, organizationSlug }: AppSidebarPro
   const navigation = getNavigationItems(organizationSlug)
   
   // Helper function to check if a navigation item is active
-  const isItemActive = (item: any) => {
+  const isItemActive = (item: NavigationItem) => {
     if (organizationSlug) {
       // Remove organization slug from pathname for comparison
       const cleanPathname = pathname.replace(`/${organizationSlug}`, '')
@@ -46,10 +47,13 @@ export function AppSidebar({ organizationName, organizationSlug }: AppSidebarPro
           <Building2 className="h-6 w-6" />
           <div className="flex flex-col">
             <span className="text-sm font-semibold">Associsse</span>
-            {organizationName && (
-              <span className="text-xs text-muted-foreground">{organizationName}</span>
-            )}
           </div>
+        </div>
+        <div className="px-2 pb-2">
+          <OrganizationSwitcher 
+            currentOrganizationSlug={organizationSlug}
+            currentOrganizationName={organizationName}
+          />
         </div>
       </SidebarHeader>
       
@@ -63,9 +67,8 @@ export function AppSidebar({ organizationName, organizationSlug }: AppSidebarPro
                   <SidebarMenuButton 
                     asChild 
                     isActive={isItemActive(item)}
-                    disabled={item.disabled}
                   >
-                    <Link href={item.href}>
+                    <Link href={item.href} className={item.disabled ? 'opacity-50 pointer-events-none' : ''}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.name}</span>
                       {item.badge && (
@@ -82,9 +85,8 @@ export function AppSidebar({ organizationName, organizationSlug }: AppSidebarPro
                           <SidebarMenuSubButton 
                             asChild 
                             isActive={isItemActive(child)}
-                            disabled={child.disabled}
                           >
-                            <Link href={child.href}>
+                            <Link href={child.href} className={child.disabled ? 'opacity-50 pointer-events-none' : ''}>
                               <child.icon className="h-4 w-4" />
                               <span>{child.name}</span>
                               {child.badge && (

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Building2, Save, Upload, MapPin, Phone, Mail, Globe } from 'lucide-react'
+import { Building2, Save, MapPin, Phone, Mail, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { LogoUpload } from "@/components/logo-upload"
@@ -32,7 +32,12 @@ const organizationSchema = z.object({
 
 type OrganizationFormData = z.infer<typeof organizationSchema>
 
-export default function OrganizationSettingsPage() {
+export default function OrganizationSettingsPage({
+  params,
+}: {
+  params: { orgSlug: string }
+}) {
+  const { orgSlug } = params
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [organizationId, setOrganizationId] = useState<string | null>(null)
@@ -66,7 +71,7 @@ export default function OrganizationSettingsPage() {
   useEffect(() => {
     const loadOrganizationData = async () => {
       try {
-        const response = await fetch('/api/organizations')
+        const response = await fetch(`/api/organizations/${orgSlug}`)
         if (response.ok) {
           const data = await response.json()
           const org = data.organization
@@ -96,14 +101,14 @@ export default function OrganizationSettingsPage() {
     }
 
     loadOrganizationData()
-  }, [reset])
+  }, [reset, orgSlug])
 
   const onSubmit = async (data: OrganizationFormData) => {
     setIsLoading(true)
     
     try {
-      const response = await fetch('/api/organizations', {
-        method: 'PUT',
+      const response = await fetch(`/api/organizations/${orgSlug}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -116,7 +121,7 @@ export default function OrganizationSettingsPage() {
         const error = await response.json()
         toast.error(error.message || 'Failed to update organization')
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while updating the organization')
     } finally {
       setIsLoading(false)
@@ -124,7 +129,6 @@ export default function OrganizationSettingsPage() {
   }
 
   // Auto-generate slug from name
-  const nameValue = watch('name')
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -167,7 +171,7 @@ export default function OrganizationSettingsPage() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Organization Settings</h1>
-        <p className="text-gray-600">Manage your organization's details and branding</p>
+        <p className="text-gray-600">Manage your organization&apos;s details and branding</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -180,7 +184,7 @@ export default function OrganizationSettingsPage() {
                 Organization Information
               </CardTitle>
               <CardDescription>
-                Update your organization's basic information
+                Update your organization&apos;s basic information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -214,7 +218,7 @@ export default function OrganizationSettingsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea 
                   id="description" 
-                  placeholder="Describe your organization's mission and purpose"
+                  placeholder="Describe your organization&apos;s mission and purpose"
                   rows={3}
                   {...register('description')}
                 />
@@ -281,7 +285,7 @@ export default function OrganizationSettingsPage() {
                 Address Information
               </CardTitle>
               <CardDescription>
-                Your organization's physical address
+                Your organization&apos;s physical address
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -355,7 +359,7 @@ export default function OrganizationSettingsPage() {
             <CardHeader>
               <CardTitle>Organization Logo</CardTitle>
               <CardDescription>
-                Upload your organization's logo
+                Upload your organization&apos;s logo
               </CardDescription>
             </CardHeader>
             <CardContent>
