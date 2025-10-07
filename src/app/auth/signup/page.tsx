@@ -24,7 +24,6 @@ const signUpWithOrganizationSchema = signUpSchema.extend({
   organization: organizationSchema,
 })
 
-type SignUpWithOrganizationData = z.infer<typeof signUpWithOrganizationSchema>
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -203,7 +202,7 @@ export default function SignUpPage() {
                       />
                     </div>
                     <p className="text-xs text-gray-500">
-                      This will be your organization's unique URL identifier
+                      This will be your organization&apos;s unique URL identifier
                     </p>
                   </div>
                 </div>

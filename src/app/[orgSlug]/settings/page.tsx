@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Settings, Building2, User, Shield } from "lucide-react"
+import { Building2, User } from "lucide-react"
 import Link from "next/link"
 
 export default function SettingsPage({

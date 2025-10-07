@@ -30,13 +30,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Users, Plus, Mail, MoreHorizontal, UserCheck, UserX, Crown, Shield, User, Eye } from 'lucide-react'
+import { Users, Plus, UserCheck, Crown, Shield, User, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+const RoleEnum = z.enum(['OWNER', 'ADMIN', 'MANAGER', 'MEMBER', 'VIEWER'])
+type RoleEnum = z.infer<typeof RoleEnum>
+
 const inviteMemberSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  role: z.enum(['OWNER', 'ADMIN', 'MANAGER', 'MEMBER', 'VIEWER']),
+  role: RoleEnum,
 })
 
 type InviteMemberData = z.infer<typeof inviteMemberSchema>
@@ -49,7 +52,7 @@ interface Member {
     email: string
     image: string | null
   }
-  role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER' | 'VIEWER'
+  role: RoleEnum
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
   joinedAt: string
   updatedAt: string
@@ -169,7 +172,7 @@ export default function MembersPage() {
         const error = await response.json()
         toast.error(error.message || 'Failed to update member role')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update member role')
     }
   }
@@ -196,7 +199,7 @@ export default function MembersPage() {
         const error = await response.json()
         toast.error(error.message || 'Failed to update member status')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update member status')
     }
   }
@@ -223,7 +226,7 @@ export default function MembersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Team Members</h1>
-          <p className="text-gray-600">Manage your organization's team members</p>
+          <p className="text-gray-600">Manage your organization&apos;s team members</p>
         </div>
         <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
           <DialogTrigger asChild>
@@ -254,7 +257,7 @@ export default function MembersPage() {
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={inviteData.role}
-                  onValueChange={(value) => setInviteData({ ...inviteData, role: value as any })}
+                  onValueChange={(value) => setInviteData({ ...inviteData, role: RoleEnum.parse(value) })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a role" />
@@ -325,6 +328,7 @@ export default function MembersPage() {
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                             {member.user.image ? (
+                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={member.user.image}
                                 alt={member.user.name || member.user.email}

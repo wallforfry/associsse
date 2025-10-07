@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { updateUserProfileSchema, changePasswordSchema } from '@/lib/validations'
+import { updateUserProfileSchema } from '@/lib/validations'
 import { z } from 'zod'
-import bcrypt from 'bcryptjs'
+import { User } from "@/lib/prisma"
 
 export async function GET() {
   try {
@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Prepare update data (only include fields that are provided)
-    const updateData: any = {
+    const updateData: Partial<User> = {
       updatedAt: new Date(),
     }
 

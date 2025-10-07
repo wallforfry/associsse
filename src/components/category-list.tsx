@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { CategoryForm } from '@/components/category-form'
-import { Tag, Edit, Trash2, Plus, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Tag, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Category {
@@ -224,7 +224,7 @@ export function CategoryList({
                             size="sm"
                             variant="outline"
                             onClick={() => handleDelete(category.id)}
-                            disabled={category._count?.expenses && category._count.expenses > 0}
+                            disabled={!!category._count?.expenses && category._count.expenses > 0}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

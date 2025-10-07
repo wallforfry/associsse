@@ -112,7 +112,7 @@ export function ExpenseForm({
         setReceiptUrl(initialData.receipt)
       }
     }
-  }, [initialData, reset])
+  }, [initialData, reset, setValue])
 
   // Sync receiptUrl state with form field
   useEffect(() => {

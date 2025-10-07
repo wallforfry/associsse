@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { Client } = require('minio')
+import { Client } from 'minio'
 
 const MinioClient = new Client({
   endPoint: process.env.MINIO_ENDPOINT || 'localhost',

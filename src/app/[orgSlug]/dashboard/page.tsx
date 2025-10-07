@@ -3,12 +3,10 @@ import { Button } from '@/components/ui/button'
 import { 
   DollarSign, 
   Users, 
-  TrendingUp, 
   Activity,
   Plus,
   Heart,
   Receipt,
-  PiggyBank,
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
@@ -168,7 +166,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
             Recent Activity
           </CardTitle>
           <CardDescription>
-            Your organization's recent activity
+            Your organization&apos;s recent activity
           </CardDescription>
         </CardHeader>
         <CardContent>

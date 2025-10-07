@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { createExpenseSchema } from '@/lib/validations'
 import { z } from 'zod'
+import { Expense } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Convert Decimal fields to numbers for proper JSON serialization
-    const serializedExpenses = expenses.map((expense: any) => ({
+    const serializedExpenses = expenses.map((expense: Expense) => ({
       ...expense,
       amountTTC: Number(expense.amountTTC),
       taxesAmount: Number(expense.taxesAmount),

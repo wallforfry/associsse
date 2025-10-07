@@ -188,7 +188,7 @@ export async function HEAD(
         headers,
       })
       
-    } catch (minioError) {
+    } catch {
       return NextResponse.json(
         { message: 'File not found' },
         { status: 404 }

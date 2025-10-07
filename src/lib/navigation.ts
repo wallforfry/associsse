@@ -2,7 +2,6 @@ import {
   Home,
   DollarSign,
   Users,
-  FileText,
   BarChart3,
   Settings,
   Receipt,

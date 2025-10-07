@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { CategoryForm } from '@/components/category-form'
@@ -37,7 +37,7 @@ export default function CategoriesPage() {
   const activeCategories = categories.filter(c => c.isActive).length
   const totalExpenses = categories.reduce((sum, c) => sum + (c._count?.expenses || 0), 0)
 
-  const fetchOrganization = async () => {
+  const fetchOrganization = useCallback(async () => {
     try {
       const response = await fetch(`/api/organizations/${orgSlug}`)
       if (response.ok) {
@@ -50,9 +50,9 @@ export default function CategoriesPage() {
     } catch (error) {
       console.error('Error fetching organization:', error)
     }
-  }
+  }, [orgSlug])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     if (!organizationId) {
       console.log('No organizationId, skipping fetchCategories')
       return
@@ -73,28 +73,28 @@ export default function CategoriesPage() {
       console.error('Error fetching categories:', error)
       toast.error('Failed to load categories')
     }
-  }
+  }, [organizationId])
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true)
     try {
       await fetchCategories()
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [fetchCategories])
 
   useEffect(() => {
     console.log('useEffect: fetchOrganization called with orgSlug:', orgSlug)
     fetchOrganization()
-  }, [orgSlug])
+  }, [fetchOrganization, orgSlug])
 
   useEffect(() => {
     console.log('useEffect: organizationId changed to:', organizationId)
     if (organizationId) {
       refreshData()
     }
-  }, [organizationId])
+  }, [organizationId, refreshData])
 
   const handleFormSuccess = () => {
     setIsAddDialogOpen(false)

@@ -53,7 +53,7 @@ export function CategoryForm({
     watch,
     reset,
   } = useForm<CreateCategoryInput>({
-    resolver: zodResolver(createCategorySchema) as any,
+    resolver: zodResolver(createCategorySchema),
     defaultValues: {
       name: '',
       description: '',
@@ -61,8 +61,6 @@ export function CategoryForm({
       ...initialData,
     },
   })
-
-  const watchedColor = watch('color')
 
   useEffect(() => {
     if (initialData) {
@@ -77,7 +75,7 @@ export function CategoryForm({
     setValue('color', selectedColor)
   }, [selectedColor, setValue])
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CreateCategoryInput) => {
     setIsSubmitting(true)
 
     try {

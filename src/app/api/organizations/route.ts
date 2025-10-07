@@ -1,19 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { getProxyUrl } from '@/lib/file-utils'
-import { z } from 'zod'
-import bcrypt from 'bcryptjs'
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { db } from "@/lib/db"
+import { getProxyUrl } from "@/lib/file-utils"
+import { z } from "zod"
+import { Organization, OrganizationMembership } from "@/lib/prisma"
 
 const createOrganizationSchema = z.object({
-  name: z.string().min(2, 'Organization name must be at least 2 characters'),
-  slug: z.string()
-    .min(2, 'Slug must be at least 2 characters')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
+  name: z.string().min(2, "Organization name must be at least 2 characters"),
+  slug: z
+    .string()
+    .min(2, "Slug must be at least 2 characters")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug can only contain lowercase letters, numbers, and hyphens"
+    ),
   description: z.string().optional(),
-  website: z.string().url().optional().or(z.literal('')),
-  email: z.string().email().optional().or(z.literal('')),
+  website: z.string().url().optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -26,19 +30,16 @@ const createOrganizationSchema = z.object({
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     // Get all organizations the user is a member of
     const memberships = await db.organizationMembership.findMany({
       where: {
         userId: session.user.id,
-        status: 'ACTIVE'
+        status: "ACTIVE",
       },
       include: {
         organization: {
@@ -59,41 +60,64 @@ export async function GET() {
             status: true,
             createdAt: true,
             updatedAt: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
-        joinedAt: 'desc'
-      }
+        joinedAt: "desc",
+      },
     })
 
-    const organizations = memberships.map((membership: any) => ({
-      id: membership.organization.id,
-      name: membership.organization.name,
-      slug: membership.organization.slug,
-      logo: getProxyUrl(membership.organization.logo),
-      description: membership.organization.description,
-      website: membership.organization.website,
-      email: membership.organization.email,
-      phone: membership.organization.phone,
-      address: membership.organization.address,
-      city: membership.organization.city,
-      state: membership.organization.state,
-      zipCode: membership.organization.zipCode,
-      country: membership.organization.country,
-      status: membership.organization.status,
-      role: membership.role,
-      joinedAt: membership.joinedAt.toISOString(),
-      createdAt: membership.organization.createdAt.toISOString(),
-      updatedAt: membership.organization.updatedAt.toISOString(),
-    }))
+    const organizations = memberships.map(
+      (
+        membership: OrganizationMembership & {
+          organization: Pick<
+            Organization,
+            | "id"
+            | "name"
+            | "slug"
+            | "logo"
+            | "description"
+            | "website"
+            | "email"
+            | "phone"
+            | "address"
+            | "city"
+            | "state"
+            | "zipCode"
+            | "country"
+            | "status"
+            | "createdAt"
+            | "updatedAt"
+          >
+        }
+      ) => ({
+        id: membership.organization.id,
+        name: membership.organization.name,
+        slug: membership.organization.slug,
+        logo: getProxyUrl(membership.organization.logo),
+        description: membership.organization.description,
+        website: membership.organization.website,
+        email: membership.organization.email,
+        phone: membership.organization.phone,
+        address: membership.organization.address,
+        city: membership.organization.city,
+        state: membership.organization.state,
+        zipCode: membership.organization.zipCode,
+        country: membership.organization.country,
+        status: membership.organization.status,
+        role: membership.role,
+        joinedAt: membership.joinedAt.toISOString(),
+        createdAt: membership.organization.createdAt.toISOString(),
+        updatedAt: membership.organization.updatedAt.toISOString(),
+      })
+    )
 
     return NextResponse.json({ organizations })
-
   } catch (error) {
-    console.error('Error fetching organizations:', error)
+    console.error("Error fetching organizations:", error)
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     )
   }
@@ -103,12 +127,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
@@ -116,12 +137,12 @@ export async function POST(request: NextRequest) {
 
     // Check if slug is already taken
     const existingOrg = await db.organization.findUnique({
-      where: { slug: validatedData.slug }
+      where: { slug: validatedData.slug },
     })
 
     if (existingOrg) {
       return NextResponse.json(
-        { message: 'Organization slug is already taken' },
+        { message: "Organization slug is already taken" },
         { status: 400 }
       )
     }
@@ -140,8 +161,8 @@ export async function POST(request: NextRequest) {
         state: validatedData.state || null,
         zipCode: validatedData.zipCode || null,
         country: validatedData.country || null,
-        status: 'ACTIVE',
-      }
+        status: "ACTIVE",
+      },
     })
 
     // Create membership for the creator as OWNER
@@ -149,9 +170,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         organizationId: organization.id,
-        role: 'OWNER',
-        status: 'ACTIVE',
-      }
+        role: "OWNER",
+        status: "ACTIVE",
+      },
     })
 
     // Return the organization with proxy URL
@@ -162,23 +183,25 @@ export async function POST(request: NextRequest) {
       updatedAt: organization.updatedAt.toISOString(),
     }
 
-    return NextResponse.json({
-      message: 'Organization created successfully',
-      organization: organizationWithProxyUrl
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        message: "Organization created successfully",
+        organization: organizationWithProxyUrl,
+      },
+      { status: 201 }
+    )
   } catch (error) {
-    console.error('Error creating organization:', error)
-    
+    console.error("Error creating organization:", error)
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: 'Validation error', errors: error.issues },
+        { message: "Validation error", errors: error.issues },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     )
   }
