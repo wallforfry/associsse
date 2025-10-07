@@ -26,7 +26,7 @@ export default function SettingsPage({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
+        <Card className="justify-between">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
@@ -45,7 +45,7 @@ export default function SettingsPage({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="justify-between">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />

@@ -9,6 +9,7 @@ import {
   PiggyBank,
   Building2,
   Tag,
+  Calculator,
 } from 'lucide-react'
 
 export interface NavigationItem {
@@ -29,24 +30,30 @@ export const navigationItems: NavigationItem[] = [
     description: 'Overview and key metrics',
   },
   {
-    name: 'Expenses',
-    href: '/expenses',
-    icon: Receipt,
-    description: 'Track organization expenses',
+    name: 'Accounting',
+    href: '/accounting',
+    icon: Calculator,
+    description: 'Financial accounting and transactions',
     children: [
       {
+        name: 'Expenses',
+        href: '/accounting/expenses',
+        icon: Receipt,
+        description: 'Track organization expenses',
+      },
+      {
+        name: 'Banks',
+        href: '/accounting/banks',
+        icon: PiggyBank,
+        description: 'Track organization banks',
+      },
+      {
         name: 'Categories',
-        href: '/expenses/categories',
+        href: '/accounting/categories',
         icon: Tag,
         description: 'Manage expense categories',
       },
     ],
-  },
-  {
-    name: 'Accounting',
-    href: '/accounting',
-    icon: PiggyBank,
-    description: 'Financial accounting and transactions',
   },
   {
     name: 'Members',
