@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validateSession } from '@/lib/auth-utils'
 import { bankTransactionImportSchema } from '@/lib/validations'
 import { createActivity } from '@/lib/activity-utils'
 import { ActivityType } from '@/lib/prisma'
@@ -9,15 +8,15 @@ import { generateTransactionHash, parseCSV, parseFrenchDate, handleFileEncoding 
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await validateSession()
+    if (!authResult.success) {
+      return authResult.response
     }
 
     // Get user's organization
     const membership = await db.organizationMembership.findFirst({
       where: {
-        userId: session.user.id,
+        userId: authResult.userId,
         status: 'ACTIVE'
       },
       include: {
@@ -119,7 +118,7 @@ export async function POST(request: NextRequest) {
     // Log activity
     await createActivity({
       organizationId: membership.organization.id,
-      userId: session.user.id,
+      userId: authResult.userId,
       type: ActivityType.BANK_TRANSACTIONS_IMPORTED,
       entityType: 'bank_transaction',
       description: `Imported ${importedCount} bank transactions from CSV`,

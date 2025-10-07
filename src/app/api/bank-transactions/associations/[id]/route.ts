@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { validateSession } from '@/lib/auth-utils'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await validateSession()
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const associationId = params.id
@@ -24,7 +23,7 @@ export async function DELETE(
             organization: {
               include: {
                 memberships: {
-                  where: { userId: session.user.id }
+                  where: { userId: authResult.userId }
                 }
               }
             }
