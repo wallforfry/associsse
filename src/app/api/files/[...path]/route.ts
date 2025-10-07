@@ -59,10 +59,11 @@ export async function GET(
     const bucketName = process.env.MINIO_BUCKET || 'associsse'
     
     try {
-      const stream = await MinioClient.getObject(bucketName, objectPath)
+      const client = MinioClient()
+      const stream = await client.getObject(bucketName, objectPath)
       
       // Get object metadata
-      const stat = await MinioClient.statObject(bucketName, objectPath)
+      const stat = await client.statObject(bucketName, objectPath)
       
       // Convert stream to buffer
       const chunks: Buffer[] = []
@@ -165,7 +166,8 @@ export async function HEAD(
     const bucketName = process.env.MINIO_BUCKET || 'associsse'
     
     try {
-      const stat = await MinioClient.statObject(bucketName, objectPath)
+      const client = MinioClient()
+      const stat = await client.statObject(bucketName, objectPath)
       
       const headers = new Headers()
       headers.set('Content-Type', stat.metaData['content-type'] || 'application/octet-stream')

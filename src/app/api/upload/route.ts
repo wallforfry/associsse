@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
 
     // Upload to Minio
-    await MinioClient.putObject(
+    const client = MinioClient()
+    await client.putObject(
       process.env.MINIO_BUCKET || 'associsse',
       objectName,
       buffer,
@@ -110,7 +111,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from Minio
-    await MinioClient.removeObject(
+    const client = MinioClient()
+    await client.removeObject(
       process.env.MINIO_BUCKET || 'associsse',
       objectName
     )

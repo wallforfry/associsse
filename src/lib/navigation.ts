@@ -150,7 +150,7 @@ export function getGroupedNavigationItems(organizationSlug?: string) {
  */
 export function getBreadcrumbItems(pathname: string, organizationSlug?: string) {
   const items = getNavigationItems(organizationSlug)
-  const pathSegments = pathname.split('/').filter(Boolean)
+  // const pathSegments = pathname.split('/').filter(Boolean)
   const breadcrumbs = []
   
   // Remove organization slug from pathname for matching

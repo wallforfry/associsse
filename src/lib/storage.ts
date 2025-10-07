@@ -1,12 +1,29 @@
 import { Client } from 'minio'
 
-const MinioClient = new Client({
-  endPoint: process.env.MINIO_ENDPOINT!,
-  port: parseInt(process.env.MINIO_PORT || '9000'),
-  useSSL: process.env.MINIO_USE_SSL === 'true',
-  accessKey: process.env.MINIO_ACCESS_KEY!,
-  secretKey: process.env.MINIO_SECRET_KEY!,
-})
+// Only initialize MinioClient if environment variables are available
+let MinioClient: Client | null = null
+
+function getMinioClient(): Client {
+  if (!MinioClient) {
+    const endPoint = process.env.MINIO_ENDPOINT
+    const accessKey = process.env.MINIO_ACCESS_KEY
+    const secretKey = process.env.MINIO_SECRET_KEY
+    
+    if (!endPoint || !accessKey || !secretKey) {
+      throw new Error('Minio configuration is not available. Please check your environment variables.')
+    }
+    
+    MinioClient = new Client({
+      endPoint,
+      port: parseInt(process.env.MINIO_PORT || '9000'),
+      useSSL: process.env.MINIO_USE_SSL === 'true',
+      accessKey,
+      secretKey,
+    })
+  }
+  
+  return MinioClient
+}
 
 const BUCKET_NAME = process.env.MINIO_BUCKET || 'associsse'
 
@@ -14,20 +31,21 @@ const BUCKET_NAME = process.env.MINIO_BUCKET || 'associsse'
 export async function initializeStorage() {
   try {
     console.log('Initializing Minio storage...')
+    const client = getMinioClient()
     
     // Check if bucket exists
-    const exists = await MinioClient.bucketExists(BUCKET_NAME)
+    const exists = await client.bucketExists(BUCKET_NAME)
     
     if (!exists) {
       console.log(`Creating bucket: ${BUCKET_NAME}`)
-      await MinioClient.makeBucket(BUCKET_NAME, 'us-east-1')
+      await client.makeBucket(BUCKET_NAME, 'us-east-1')
       console.log(`✅ Bucket ${BUCKET_NAME} created successfully`)
     } else {
       console.log(`✅ Bucket ${BUCKET_NAME} already exists`)
     }
     
     // Test connection by listing buckets
-    const buckets = await MinioClient.listBuckets()
+    const buckets = await client.listBuckets()
     console.log(`✅ Storage initialized successfully. Available buckets: ${buckets.length}`)
     
     return true
@@ -52,7 +70,8 @@ export async function uploadFile(
   const objectName = `${organizationId}/${folder}/${fileName}`
   
   try {
-    await MinioClient.putObject(BUCKET_NAME, objectName, file, file.length, {
+    const client = getMinioClient()
+    await client.putObject(BUCKET_NAME, objectName, file, file.length, {
       'Content-Type': contentType || 'application/octet-stream',
     })
     
@@ -65,7 +84,8 @@ export async function uploadFile(
 
 export async function getFileUrl(objectName: string): Promise<string> {
   try {
-    return await MinioClient.presignedGetObject(BUCKET_NAME, objectName, 24 * 60 * 60) // 24 hours
+    const client = getMinioClient()
+    return await client.presignedGetObject(BUCKET_NAME, objectName, 24 * 60 * 60) // 24 hours
   } catch (error) {
     console.error('Error getting file URL:', error)
     throw new Error('Failed to get file URL')
@@ -74,11 +94,13 @@ export async function getFileUrl(objectName: string): Promise<string> {
 
 export async function deleteFile(objectName: string): Promise<void> {
   try {
-    await MinioClient.removeObject(BUCKET_NAME, objectName)
+    const client = getMinioClient()
+    await client.removeObject(BUCKET_NAME, objectName)
   } catch (error) {
     console.error('Error deleting file:', error)
     throw new Error('Failed to delete file')
   }
 }
 
-export { MinioClient }
+// Export the getter function instead of the client directly
+export { getMinioClient as MinioClient }

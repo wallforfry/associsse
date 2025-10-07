@@ -17,18 +17,18 @@ async function initializeStorage() {
     console.log('🚀 Initializing Minio storage...')
     
     // Check if bucket exists
-    const exists = await MinioClient.bucketExists(BUCKET_NAME)
+    const exists = await MinioClient().bucketExists(BUCKET_NAME)
     
     if (!exists) {
       console.log(`📦 Creating bucket: ${BUCKET_NAME}`)
-      await MinioClient.makeBucket(BUCKET_NAME, 'us-east-1')
+      await MinioClient().makeBucket(BUCKET_NAME, 'us-east-1')
       console.log(`✅ Bucket ${BUCKET_NAME} created successfully`)
     } else {
       console.log(`✅ Bucket ${BUCKET_NAME} already exists`)
     }
     
     // Test connection by listing buckets
-    const buckets = await MinioClient.listBuckets()
+    const buckets = await MinioClient().listBuckets()
     console.log(`✅ Storage initialized successfully. Available buckets: ${buckets.length}`)
     
     process.exit(0)
