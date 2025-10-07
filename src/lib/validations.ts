@@ -129,7 +129,24 @@ export const generateReportSchema = z.object({
   type: z.enum(['FINANCIAL_SUMMARY', 'DONATION_REPORT', 'EXPENSE_REPORT', 'PROJECT_REPORT', 'TAX_REPORT']),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  parameters: z.record(z.any()).optional(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
+})
+
+// ===== USER PROFILE SCHEMAS =====
+
+export const updateUserProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  email: z.string().email('Invalid email address').optional(),
+  image: z.string().optional(),
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your new password'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
 // ===== TYPE EXPORTS =====
@@ -154,3 +171,5 @@ export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>
 export type UpdateMembershipInput = z.infer<typeof updateMembershipSchema>
 export type GenerateReportInput = z.infer<typeof generateReportSchema>
+export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>

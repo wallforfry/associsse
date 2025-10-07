@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { ReactNode } from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
+import { ReactNode } from "react"
+import { useSession, signOut } from "next-auth/react"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,17 +10,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { User, LogOut, Settings } from 'lucide-react'
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { User, LogOut, Settings } from "lucide-react"
+import Link from "next/link"
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
-import { AppSidebar } from './app-sidebar'
-import { BreadcrumbNav } from './breadcrumb-nav'
+} from "@/components/ui/sidebar"
+import { AppSidebar } from "./app-sidebar"
+import { BreadcrumbNav } from "./breadcrumb-nav"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -28,20 +29,20 @@ interface DashboardLayoutProps {
   organizationSlug?: string
 }
 
-export function DashboardLayout({ 
-  children, 
-  organizationName, 
-  organizationSlug 
+export function DashboardLayout({
+  children,
+  organizationName,
+  organizationSlug,
 }: DashboardLayoutProps) {
   const { data: session } = useSession()
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
+    signOut({ callbackUrl: "/" })
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar 
+      <AppSidebar
         organizationName={organizationName}
         organizationSlug={organizationSlug}
       />
@@ -50,23 +51,26 @@ export function DashboardLayout({
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
             {organizationName && (
-              <>
-                <span className="text-lg font-semibold">{organizationName}</span>
-                <Badge variant="secondary" className="text-xs">
-                  {organizationSlug}
-                </Badge>
-              </>
+              <span className="text-lg font-semibold">{organizationName}</span>
             )}
           </div>
           <div className="ml-auto flex items-center gap-2">
             {session?.user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                      <AvatarImage
+                        src={session.user.image || ""}
+                        alt={session.user.name || ""}
+                      />
                       <AvatarFallback>
-                        {session.user.name?.charAt(0) || session.user.email?.charAt(0) || 'U'}
+                        {session.user.name?.charAt(0) ||
+                          session.user.email?.charAt(0) ||
+                          "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -83,14 +87,18 @@ export function DashboardLayout({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
+                  <Link href={`/${organizationSlug}/settings/account`}>
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Account</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href={`/${organizationSlug}/settings`}>
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />

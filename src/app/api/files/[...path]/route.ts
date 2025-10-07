@@ -19,7 +19,7 @@ export async function GET(
     }
 
     // Reconstruct the object path from the URL segments
-    const objectPath = params.path.join('/')
+    const objectPath = await params.path.join('/')
     
     if (!objectPath) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function GET(
     const pathSegments = objectPath.split('/')
     const organizationId = pathSegments[0]
     
-    if (!organizationId) {
+    if (!organizationId && organizationId !== 'default') {
       return NextResponse.json(
         { message: 'Invalid file path' },
         { status: 400 }
@@ -48,7 +48,7 @@ export async function GET(
       }
     })
 
-    if (!userMembership) {
+    if (!userMembership && organizationId !== 'default') {
       return NextResponse.json(
         { message: 'Access denied to this file' },
         { status: 403 }
@@ -126,7 +126,7 @@ export async function HEAD(
       )
     }
 
-    const objectPath = params.path.join('/')
+    const objectPath = await params.path.join('/')
     
     if (!objectPath) {
       return NextResponse.json(
@@ -139,7 +139,7 @@ export async function HEAD(
     const pathSegments = objectPath.split('/')
     const organizationId = pathSegments[0]
     
-    if (!organizationId) {
+    if (!organizationId && organizationId !== 'default') {
       return NextResponse.json(
         { message: 'Invalid file path' },
         { status: 400 }
@@ -155,7 +155,7 @@ export async function HEAD(
       }
     })
 
-    if (!userMembership) {
+    if (!userMembership && organizationId !== 'default') {
       return NextResponse.json(
         { message: 'Access denied to this file' },
         { status: 403 }
