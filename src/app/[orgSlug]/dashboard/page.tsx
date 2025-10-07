@@ -10,6 +10,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
+import { ActivityList } from '@/components/activity-list'
 
 interface DashboardPageProps {
   params: {
@@ -157,13 +158,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <Activity className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No recent activity</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Start by creating a project or recording a donation.
-            </p>
-          </div>
+          <ActivityList orgSlug={params.orgSlug} limit={10} />
         </CardContent>
       </Card>
     </div>

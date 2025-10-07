@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { updateExpenseSchema } from '@/lib/validations'
 import { z } from 'zod'
+import { activityHelpers } from "@/lib/activity-utils"
 
 export async function GET(
   request: NextRequest,
@@ -135,6 +136,20 @@ export async function PUT(
       },
     })
 
+    // Log activity
+    try {
+      await activityHelpers.logExpenseUpdated(
+        existingExpense.organizationId,
+        session.user.id,
+        expense.id,
+        Number(expense.amountTTC),
+        expense.description
+      )
+    } catch (activityError) {
+      console.error('Failed to log expense update activity:', activityError)
+      // Don't fail the request if activity logging fails
+    }
+
     // Convert Decimal fields to numbers for proper JSON serialization
     const serializedExpense = {
       ...expense,
@@ -208,6 +223,18 @@ export async function DELETE(
         id: params.id,
       },
     })
+
+    // Log activity
+    try {
+      await activityHelpers.logExpenseDeleted(
+        existingExpense.organizationId,
+        session.user.id,
+        expense.id
+      )
+    } catch (activityError) {
+      console.error('Failed to log expense deletion activity:', activityError)
+      // Don't fail the request if activity logging fails
+    }
 
     return NextResponse.json({ message: 'Expense deleted successfully' })
   } catch (error) {

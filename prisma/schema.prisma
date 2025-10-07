@@ -54,6 +54,7 @@ model User {
   sessions    Session[]
   memberships OrganizationMembership[]
   expenses    Expense[]
+  activities  Activity[]
 }
 
 model VerificationToken {
@@ -93,6 +94,7 @@ model Organization {
   chartOfAccounts ChartOfAccount[]
   reports         Report[]
   Transaction     Transaction[]
+  activities      Activity[]
 
   @@map("organizations")
 }
@@ -238,6 +240,25 @@ model Category {
   @@map("categories")
 }
 
+// ===== ACTIVITIES =====
+
+model Activity {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  type           ActivityType
+  entityType     String?      // e.g., "expense", "category", "member"
+  entityId       String?      // ID of the related entity
+  description    String
+  metadata       Json?        // Additional data about the activity
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
 // ===== REPORTS =====
 
 model Report {
@@ -331,4 +352,20 @@ enum ReportType {
   EXPENSE_REPORT
   PROJECT_REPORT
   TAX_REPORT
+}
+
+enum ActivityType {
+  EXPENSE_CREATED
+  EXPENSE_APPROVED
+  EXPENSE_REJECTED
+  EXPENSE_UPDATED
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
+  MEMBER_JOINED
+  MEMBER_LEFT
+  MEMBER_ROLE_CHANGED
+  ORGANIZATION_UPDATED
+  USER_LOGIN
+  USER_LOGOUT
 }

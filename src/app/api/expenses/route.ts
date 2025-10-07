@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateMembership } from '@/lib/auth-utils'
 import { createExpenseSchema } from '@/lib/validations'
+import { activityHelpers } from '@/lib/activity-utils'
 import { z } from 'zod'
 import { Expense } from '@/lib/prisma'
 
@@ -95,6 +96,20 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Log activity
+    try {
+      await activityHelpers.logExpenseCreated(
+        organizationId,
+        authResult.userId,
+        expense.id,
+        Number(expense.amountTTC),
+        expense.description
+      )
+    } catch (activityError) {
+      console.error('Failed to log expense creation activity:', activityError)
+      // Don't fail the request if activity logging fails
+    }
 
     // Convert Decimal fields to numbers for proper JSON serialization
     const serializedExpense = {

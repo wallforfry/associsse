@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateRole } from '@/lib/auth-utils'
 import { createCategorySchema } from '@/lib/validations'
+import { activityHelpers } from '@/lib/activity-utils'
 import { z } from 'zod'
 
 export async function GET(request: NextRequest) {
@@ -77,6 +78,19 @@ export async function POST(request: NextRequest) {
         organizationId,
       },
     })
+
+    // Log activity
+    try {
+      await activityHelpers.logCategoryCreated(
+        organizationId,
+        authResult.userId,
+        category.id,
+        category.name
+      )
+    } catch (activityError) {
+      console.error('Failed to log category creation activity:', activityError)
+      // Don't fail the request if activity logging fails
+    }
 
     return NextResponse.json(category, { status: 201 })
   } catch (error) {

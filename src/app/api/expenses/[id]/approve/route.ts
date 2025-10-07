@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { approveExpenseSchema } from '@/lib/validations'
+import { activityHelpers } from '@/lib/activity-utils'
 import { z } from 'zod'
 
 export async function POST(
@@ -71,6 +72,30 @@ export async function POST(
         },
       },
     })
+
+    // Log activity
+    try {
+      if (validatedData.status === 'APPROVED') {
+        await activityHelpers.logExpenseApproved(
+          existingExpense.organizationId,
+          session.user.id,
+          expense.id,
+          Number(expense.amountTTC),
+          expense.description
+        )
+      } else if (validatedData.status === 'REJECTED') {
+        await activityHelpers.logExpenseRejected(
+          existingExpense.organizationId,
+          session.user.id,
+          expense.id,
+          Number(expense.amountTTC),
+          expense.description
+        )
+      }
+    } catch (activityError) {
+      console.error('Failed to log expense approval activity:', activityError)
+      // Don't fail the request if activity logging fails
+    }
 
     // Convert Decimal fields to numbers for proper JSON serialization
     const serializedExpense = {
