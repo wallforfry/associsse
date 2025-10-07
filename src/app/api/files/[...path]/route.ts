@@ -19,7 +19,7 @@ export async function GET(
     }
 
     // Reconstruct the object path from the URL segments
-    const objectPath = await params.path.join('/')
+    const objectPath = (await params).path.join('/')
     
     if (!objectPath) {
       return NextResponse.json(
@@ -126,7 +126,7 @@ export async function HEAD(
       )
     }
 
-    const objectPath = await params.path.join('/')
+    const objectPath = (await params).path.join('/')
     
     if (!objectPath) {
       return NextResponse.json(

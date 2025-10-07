@@ -65,9 +65,15 @@ export const updateDonationSchema = createDonationSchema.partial()
 export const createExpenseSchema = z.object({
   categoryId: z.string().optional(),
   description: z.string().min(2, 'Description must be at least 2 characters'),
-  amount: z.number().positive('Amount must be positive'),
-  date: z.date().default(() => new Date()),
-  receipt: z.string().optional(),
+  amountTTC: z.number().positive('Amount TTC must be positive'),
+  taxesAmount: z.number().min(0, 'Taxes amount must be non-negative'),
+  date: z.union([z.string(), z.date()]).transform((val) => {
+    if (typeof val === 'string') {
+      return new Date(val)
+    }
+    return val
+  }),
+  receipt: z.string().nullish(),
 })
 
 export const updateExpenseSchema = createExpenseSchema.partial()
@@ -83,6 +89,7 @@ export const createCategorySchema = z.object({
   name: z.string().min(2, 'Category name must be at least 2 characters'),
   description: z.string().optional(),
   color: z.string().optional(),
+  isActive: z.boolean().optional(),
 })
 
 export const updateCategorySchema = createCategorySchema.partial()

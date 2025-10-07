@@ -9,6 +9,7 @@ import {
   Heart,
   PiggyBank,
   Building2,
+  Tag,
 } from 'lucide-react'
 
 export interface NavigationItem {
@@ -45,6 +46,14 @@ export const navigationItems: NavigationItem[] = [
     href: '/expenses',
     icon: Receipt,
     description: 'Track organization expenses',
+    children: [
+      {
+        name: 'Categories',
+        href: '/expenses/categories',
+        icon: Tag,
+        description: 'Manage expense categories',
+      },
+    ],
   },
   {
     name: 'Accounting',

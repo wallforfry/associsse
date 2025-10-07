@@ -60,7 +60,7 @@ export default async function OrganizationLayout({
     notFound()
   }
 
-  const organization = await getOrganization(params.orgSlug)
+  const organization = await getOrganization((await params).orgSlug)
   
   if (!organization) {
     notFound()
@@ -70,7 +70,7 @@ export default async function OrganizationLayout({
     notFound()
   }
 
-  const membership = await getUserMembership(session.user.id, params.orgSlug)
+  const membership = await getUserMembership(session.user.id, (await params).orgSlug)
   
   if (!membership) {
     notFound()

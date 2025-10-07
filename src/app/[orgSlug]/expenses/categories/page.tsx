@@ -5,49 +5,37 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { ExpenseForm } from '@/components/expense-form'
-import { ExpenseList } from '@/components/expense-list'
-import { Receipt, Plus, DollarSign, TrendingUp } from 'lucide-react'
+import { CategoryForm } from '@/components/category-form'
+import { Tag, Plus, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
+import { CategoryList } from "@/components/category-list"
 
 interface Category {
   id: string
   name: string
+  description?: string
   color?: string
-}
-
-interface Expense {
-  id: string
-  description: string
-  amountTTC: number
-  taxesAmount: number
-  date: string
-  receipt?: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID'
+  isActive: boolean
   createdAt: string
-  category?: Category
-  createdBy: {
-    id: string
-    name?: string
-    email: string
+  updatedAt: string
+  _count?: {
+    expenses: number
   }
 }
 
-export default function ExpensesPage() {
+export default function CategoriesPage() {
   const params = useParams()
   const orgSlug = params.orgSlug as string
 
-  const [expenses, setExpenses] = useState<Expense[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [organizationId, setOrganizationId] = useState<string>('')
 
-  // Calculate totals
-  const totalTTC = expenses.reduce((sum, expense) => sum + expense.amountTTC, 0)
-  const totalTaxes = expenses.reduce((sum, expense) => sum + expense.taxesAmount, 0)
-  const totalNet = totalTTC - totalTaxes
-  const pendingExpenses = expenses.filter(e => e.status === 'PENDING').length
+  // Calculate statistics
+  const totalCategories = categories.length
+  const activeCategories = categories.filter(c => c.isActive).length
+  const totalExpenses = categories.reduce((sum, c) => sum + (c._count?.expenses || 0), 0)
 
   const fetchOrganization = async () => {
     try {
@@ -64,29 +52,6 @@ export default function ExpensesPage() {
     }
   }
 
-  const fetchExpenses = async () => {
-    if (!organizationId) {
-      console.log('No organizationId, skipping fetchExpenses')
-      return
-    }
-
-    try {
-      console.log('Fetching expenses for organizationId:', organizationId)
-      const response = await fetch(`/api/expenses?organizationId=${organizationId}`)
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Expenses data:', data)
-        setExpenses(data)
-      } else {
-        console.error('Failed to fetch expenses:', response.status, response.statusText)
-        throw new Error('Failed to fetch expenses')
-      }
-    } catch (error) {
-      console.error('Error fetching expenses:', error)
-      toast.error('Failed to load expenses')
-    }
-  }
-
   const fetchCategories = async () => {
     if (!organizationId) {
       console.log('No organizationId, skipping fetchCategories')
@@ -95,7 +60,7 @@ export default function ExpensesPage() {
 
     try {
       console.log('Fetching categories for organizationId:', organizationId)
-      const response = await fetch(`/api/categories?organizationId=${organizationId}`)
+      const response = await fetch(`/api/categories?organizationId=${organizationId}&includeInactive=true`)
       if (response.ok) {
         const data = await response.json()
         console.log('Categories data:', data)
@@ -113,7 +78,7 @@ export default function ExpensesPage() {
   const refreshData = async () => {
     setIsLoading(true)
     try {
-      await Promise.all([fetchExpenses(), fetchCategories()])
+      await fetchCategories()
     } finally {
       setIsLoading(false)
     }
@@ -136,24 +101,17 @@ export default function ExpensesPage() {
     refreshData()
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
-
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-            <p className="text-gray-600">Track and manage organization expenses</p>
+            <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+            <p className="text-gray-600">Manage expense categories</p>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Loading...</CardTitle>
@@ -175,23 +133,22 @@ export default function ExpensesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-gray-600">Track and manage organization expenses</p>
+          <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+          <p className="text-gray-600">Manage expense categories</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Expense
+              Add Category
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Expense</DialogTitle>
+              <DialogTitle>Add New Category</DialogTitle>
             </DialogHeader>
-            <ExpenseForm
+            <CategoryForm
               organizationId={organizationId}
-              categories={categories}
               onSuccess={handleFormSuccess}
               onCancel={() => setIsAddDialogOpen(false)}
             />
@@ -200,65 +157,51 @@ export default function ExpensesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total TTC</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+            <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalTTC)}</div>
+            <div className="text-2xl font-bold">{totalCategories}</div>
             <p className="text-xs text-muted-foreground">
-              Including all taxes
+              All categories created
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Taxes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Active Categories</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalTaxes)}</div>
+            <div className="text-2xl font-bold">{activeCategories}</div>
             <p className="text-xs text-muted-foreground">
-              Tax amount paid
+              Currently in use
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Amount</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalNet)}</div>
+            <div className="text-2xl font-bold">{totalExpenses}</div>
             <p className="text-xs text-muted-foreground">
-              TTC minus taxes
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingExpenses}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting approval
+              Expenses using categories
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Expenses List */}
-      <ExpenseList
-        expenses={expenses}
+      {/* Categories List */}
+      <CategoryList
         categories={categories}
         organizationId={organizationId}
         onRefresh={refreshData}
         canEdit={true}
-        canApprove={true}
       />
     </div>
   )

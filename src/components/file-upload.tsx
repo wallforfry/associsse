@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Upload, X, Image as ImageIcon, FileText, Check } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +31,11 @@ export function FileUpload({
   const [isDragOver, setIsDragOver] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Update previewUrl when currentUrl changes
+  useEffect(() => {
+    setPreviewUrl(currentUrl || null)
+  }, [currentUrl])
 
   // Prevent default drag behaviors on the entire page
   useEffect(() => {
@@ -167,6 +171,25 @@ export function FileUpload({
     return <Upload className="h-8 w-8 text-gray-400" />
   }
 
+  const getFileName = (url: string) => {
+    try {
+      const urlObj = new URL(url)
+      const pathname = urlObj.pathname
+      const filename = pathname.split('/').pop() || 'file'
+      return filename
+    } catch {
+      return 'file'
+    }
+  }
+
+  const isImageFile = (url: string) => {
+    return url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+  }
+
+  const isPdfFile = (url: string) => {
+    return url.match(/\.pdf$/i)
+  }
+
   return (
     <div className={cn('w-full', className)}>
 
@@ -196,11 +219,31 @@ export function FileUpload({
 
             {previewUrl ? (
               <div className="relative w-full h-full">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-lg"
-                />
+                {isImageFile(previewUrl) ? (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <div 
+                    className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (isPdfFile(previewUrl)) {
+                        window.open(previewUrl, '_blank')
+                      }
+                    }}
+                  >
+                    <FileText className="h-12 w-12 text-gray-500 mb-2" />
+                    <p className="text-sm font-medium text-gray-700 text-center px-2">
+                      {getFileName(previewUrl)}
+                    </p>
+                    {isPdfFile(previewUrl) && (
+                      <p className="text-xs text-gray-500 mt-1">PDF Document - Click to view</p>
+                    )}
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
                   <div className="opacity-0 hover:opacity-100 transition-opacity flex gap-2">
                     <Button
@@ -250,7 +293,7 @@ export function FileUpload({
                     </p>
                   </div>
                 ) : (
-                  <>
+                  <div className="flex flex-col items-center">
                     {getFileIcon()}
                     <p className="text-sm text-gray-500 mt-2">
                       {isUploading ? 'Uploading...' : placeholder}
@@ -265,7 +308,7 @@ export function FileUpload({
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mx-auto"></div>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             )}

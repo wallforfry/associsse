@@ -52,6 +52,7 @@ model User {
   accounts    Account[]
   sessions    Session[]
   memberships OrganizationMembership[]
+  expenses    Expense[]
 }
 
 model VerificationToken {
@@ -200,8 +201,10 @@ model Expense {
   id             String        @id @default(cuid())
   organizationId String
   categoryId     String?
+  createdById    String
   description    String
-  amount         Decimal       @db.Decimal(15, 2)
+  amountTTC      Decimal       @db.Decimal(15, 2) // Amount including taxes
+  taxesAmount    Decimal       @db.Decimal(15, 2) // Taxes amount
   date           DateTime
   receipt        String?
   status         ExpenseStatus @default(PENDING)
@@ -212,6 +215,7 @@ model Expense {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category     Category?    @relation(fields: [categoryId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
 
   @@map("expenses")
 }
