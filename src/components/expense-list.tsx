@@ -180,8 +180,6 @@ export function ExpenseList({
                   <TableHead>Description</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Amount TTC</TableHead>
-                  <TableHead>Taxes</TableHead>
-                  <TableHead>Net Amount</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created By</TableHead>
@@ -190,9 +188,7 @@ export function ExpenseList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.map((expense) => {
-                  const netAmount = expense.amountTTC - expense.taxesAmount
-                  
+                {expenses.map((expense) => {                  
                   return (
                     <TableRow key={expense.id}>
                       <TableCell className="font-medium">
@@ -214,8 +210,6 @@ export function ExpenseList({
                         )}
                       </TableCell>
                       <TableCell>{formatCurrency(expense.amountTTC)}</TableCell>
-                      <TableCell>{formatCurrency(expense.taxesAmount)}</TableCell>
-                      <TableCell>{formatCurrency(netAmount)}</TableCell>
                       <TableCell>{formatDate(expense.date)}</TableCell>
                       <TableCell>{getStatusBadge(expense.status)}</TableCell>
                       <TableCell>
