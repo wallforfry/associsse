@@ -7,6 +7,7 @@ vi.mock('iconv-lite', () => ({
     const supportedEncodings = ['utf8', 'iso-8859-2', 'windows-1252', 'iso-8859-1', 'cp1250', 'cp1251', 'latin1']
     return supportedEncodings.includes(encoding)
   }),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   decode: vi.fn((buffer: Buffer, encoding: string) => {
     // Simple mock that returns the buffer as string for testing
     return buffer.toString('utf8')
@@ -30,6 +31,7 @@ class MockFile {
 describe('File Encoding Handling', () => {
   it('should handle UTF-8 encoded files', async () => {
     const utf8Content = 'Date,Montant,Description\n13/08/2025,50.00,Test transaction'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile(utf8Content, 'test.csv', 'text/csv') as any
 
     const result = await handleFileEncoding(file)
@@ -38,6 +40,7 @@ describe('File Encoding Handling', () => {
 
   it('should handle files with special characters', async () => {
     const specialContent = 'Date,Montant,Description\n13/08/2025,50.00,Test with éàç characters'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile(specialContent, 'test.csv', 'text/csv') as any
 
     const result = await handleFileEncoding(file)
@@ -45,6 +48,7 @@ describe('File Encoding Handling', () => {
   })
 
   it('should fallback to default text() method on error', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile('test content', 'test.csv', 'text/csv') as any
 
     // Mock arrayBuffer to throw an error
@@ -55,6 +59,7 @@ describe('File Encoding Handling', () => {
   })
 
   it('should handle empty files', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile('', 'empty.csv', 'text/csv') as any
 
     const result = await handleFileEncoding(file)
@@ -64,6 +69,7 @@ describe('File Encoding Handling', () => {
   it('should handle files with replacement characters', async () => {
     // Create content with replacement characters
     const problematicContent = 'Date,Montant,Description\n13/08/2025,50.00,Test transaction'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile(problematicContent, 'test.csv', 'text/csv') as any
 
     const result = await handleFileEncoding(file)
@@ -72,6 +78,7 @@ describe('File Encoding Handling', () => {
 
   it('should validate CSV structure', async () => {
     const csvContent = 'Date,Montant,Description\n13/08/2025,50.00,Test transaction'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const file = new MockFile(csvContent, 'test.csv', 'text/csv') as any
 
     const result = await handleFileEncoding(file)

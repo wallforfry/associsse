@@ -1,15 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { 
   DollarSign, 
   Users, 
   Activity,
-  Plus,
-  Heart,
-  Receipt,
-  BarChart3
-} from 'lucide-react'
-import Link from 'next/link'
+  Receipt} from 'lucide-react'
 import { ActivityList } from '@/components/activity-list'
 
 interface DashboardPageProps {

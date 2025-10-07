@@ -62,10 +62,12 @@ describe('Bank Transactions Import API', () => {
 
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
 
       vi.mocked(db.organizationMembership.findFirst).mockResolvedValue({
         organization: { id: 'org-123' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
 
       const formData = new FormData()

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BarChart3, FileText } from 'lucide-react'
+import { BarChart3 } from 'lucide-react'
 
 export default function ReportsPage() {
   return (

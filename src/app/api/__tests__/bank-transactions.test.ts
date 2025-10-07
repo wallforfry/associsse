@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET } from '../bank-transactions/route'
+import { Decimal } from "@/lib/prisma/runtime/library"
 
 // Mock the dependencies
 vi.mock('next-auth', () => ({
@@ -44,6 +45,7 @@ describe('Bank Transactions API', () => {
 
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
 
       vi.mocked(db.organizationMembership.findFirst).mockResolvedValue(null)
@@ -64,21 +66,24 @@ describe('Bank Transactions API', () => {
           hash: 'hash-1',
           date: new Date('2025-08-13'),
           valueDate: new Date('2025-08-13'),
-          amount: 50.00,
+          amount: new Decimal(50.00),
           description: 'Test transaction',
-          balance: 100.00,
+          balance: new Decimal(100.00),
           createdAt: new Date(),
           updatedAt: new Date(),
           expenseAssociations: [],
+          organizationId: 'org-123',
         },
       ]
 
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
 
       vi.mocked(db.organizationMembership.findFirst).mockResolvedValue({
         organization: { id: 'org-123' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
 
       vi.mocked(db.bankTransaction.findMany).mockResolvedValue(mockTransactions)
@@ -92,9 +97,9 @@ describe('Bank Transactions API', () => {
       expect(data[0]).toMatchObject({
         id: 'tx-1',
         hash: 'hash-1',
-        amount: 50.00,
+        amount: "50",
         description: 'Test transaction',
-        balance: 100.00,
+        balance: "100",
         expenseAssociations: [],
       })
     })

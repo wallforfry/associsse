@@ -1,11 +1,9 @@
 import {
   Home,
-  DollarSign,
   Users,
   BarChart3,
   Settings,
   Receipt,
-  Heart,
   PiggyBank,
   Building2,
   Tag,
