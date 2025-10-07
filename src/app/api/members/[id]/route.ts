@@ -11,7 +11,7 @@ const updateMemberSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -55,7 +55,7 @@ export async function PATCH(
     // Get the membership to update
     const membershipToUpdate = await db.organizationMembership.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         organizationId: userMembership.organizationId
       }
     })
@@ -85,7 +85,7 @@ export async function PATCH(
 
     // Update the membership
     const updatedMembership = await db.organizationMembership.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         ...validatedData,
         updatedAt: new Date()
@@ -119,7 +119,7 @@ export async function PATCH(
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: 'Validation error', errors: error.errors },
+        { message: 'Validation error', errors: error },
         { status: 400 }
       )
     }
@@ -133,7 +133,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -174,7 +174,7 @@ export async function DELETE(
     // Get the membership to delete
     const membershipToDelete = await db.organizationMembership.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         organizationId: userMembership.organizationId
       }
     })
@@ -204,7 +204,7 @@ export async function DELETE(
 
     // Delete the membership
     await db.organizationMembership.delete({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     return NextResponse.json({

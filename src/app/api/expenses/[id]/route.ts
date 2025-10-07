@@ -8,7 +8,7 @@ import { activityHelpers } from "@/lib/activity-utils"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -18,7 +18,7 @@ export async function GET(
 
     const expense = await db.expense.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       include: {
         category: true,
@@ -74,7 +74,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -88,7 +88,7 @@ export async function PUT(
     // Get the expense to check permissions
     const existingExpense = await db.expense.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 
@@ -121,7 +121,7 @@ export async function PUT(
 
     const expense = await db.expense.update({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       data: validatedData,
       include: {
@@ -176,7 +176,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -187,7 +187,7 @@ export async function DELETE(
     // Get the expense to check permissions
     const existingExpense = await db.expense.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 
@@ -220,7 +220,7 @@ export async function DELETE(
 
     await db.expense.delete({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 
@@ -229,7 +229,7 @@ export async function DELETE(
       await activityHelpers.logExpenseDeleted(
         existingExpense.organizationId,
         session.user.id,
-        expense.id
+        existingExpense.id
       )
     } catch (activityError) {
       console.error('Failed to log expense deletion activity:', activityError)

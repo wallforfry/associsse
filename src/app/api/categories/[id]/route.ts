@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,7 +17,7 @@ export async function GET(
 
     const category = await db.category.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       include: {
         organization: {
@@ -63,7 +63,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -77,7 +77,7 @@ export async function PUT(
     // Get the category to check permissions
     const existingCategory = await db.category.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 
@@ -113,7 +113,7 @@ export async function PUT(
         where: {
           organizationId: existingCategory.organizationId,
           name: validatedData.name,
-          id: { not: params.id },
+          id: { not: (await params).id },
         },
       })
 
@@ -127,7 +127,7 @@ export async function PUT(
 
     const category = await db.category.update({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       data: validatedData,
       include: {
@@ -158,7 +158,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -169,7 +169,7 @@ export async function DELETE(
     // Get the category to check permissions
     const existingCategory = await db.category.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       include: {
         _count: {
@@ -216,7 +216,7 @@ export async function DELETE(
 
     await db.category.delete({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 

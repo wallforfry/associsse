@@ -25,17 +25,17 @@ const updateOrganizationSchema = z.object({
 // GET /api/organizations/[orgSlug] - Get specific organization
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orgSlug: string } }
+  { params }: { params: Promise<{ orgSlug: string }> }
   ) {
     try {
-    const authResult = await validateMembershipBySlug(params.orgSlug)
+    const authResult = await validateMembershipBySlug((await params).orgSlug)
     if (!authResult.success) {
       return authResult.response
     }
 
     // Get organization by slug
     const organization = await db.organization.findUnique({
-      where: { slug: params.orgSlug },
+      where: { slug: (await params).orgSlug },
       select: {
         id: true,
         name: true,
@@ -86,20 +86,20 @@ export async function GET(
 // PATCH /api/organizations/[orgSlug] - Update specific organization
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { orgSlug: string } }
+  { params }: { params: Promise<{ orgSlug: string }> }
 ) {
   try {
     const body = await request.json()
     const validatedData = updateOrganizationSchema.parse(body)
 
-    const authResult = await validateRoleBySlug(params.orgSlug, ['ADMIN', 'OWNER'])
+    const authResult = await validateRoleBySlug((await params).orgSlug, ['ADMIN', 'OWNER'])
     if (!authResult.success) {
       return authResult.response
     }
 
     // Get organization by slug
     const organization = await db.organization.findUnique({
-      where: { slug: params.orgSlug }
+      where: { slug: (await params).orgSlug }
     })
 
     if (!organization) {
@@ -199,17 +199,17 @@ export async function PATCH(
 // DELETE /api/organizations/[orgSlug] - Delete specific organization
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { orgSlug: string } }
+  { params }: { params: Promise<{ orgSlug: string }> }
 ) {
   try {
-    const authResult = await validateRoleBySlug(params.orgSlug, ['OWNER'])
+    const authResult = await validateRoleBySlug((await params).orgSlug, ['OWNER'])
     if (!authResult.success) {
       return authResult.response
     }
 
     // Get organization by slug
     const organization = await db.organization.findUnique({
-      where: { slug: params.orgSlug }
+      where: { slug: (await params).orgSlug }
     })
 
     if (!organization) {

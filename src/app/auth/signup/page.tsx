@@ -91,7 +91,7 @@ export default function SignUpPage() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error('Please check your form data')
-        console.error('Validation errors:', error.errors)
+        console.error('Validation errors:', error)
       } else {
         toast.error('Invalid form data')
       }

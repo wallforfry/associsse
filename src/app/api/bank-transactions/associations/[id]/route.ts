@@ -4,7 +4,7 @@ import { validateSession } from '@/lib/auth-utils'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await validateSession()
@@ -12,7 +12,7 @@ export async function DELETE(
       return authResult.response
     }
 
-    const associationId = params.id
+    const associationId = (await params).id
 
     // Find the association and verify user has access
     const association = await db.bankTransactionExpense.findUnique({

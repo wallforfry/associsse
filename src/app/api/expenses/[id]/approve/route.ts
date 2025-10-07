@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -22,7 +22,7 @@ export async function POST(
     // Get the expense to check permissions
     const existingExpense = await db.expense.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
     })
 
@@ -54,7 +54,7 @@ export async function POST(
 
     const expense = await db.expense.update({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       data: {
         status: validatedData.status,

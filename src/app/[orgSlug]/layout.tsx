@@ -7,9 +7,9 @@ import { authOptions } from '@/lib/auth'
 
 interface OrganizationLayoutProps {
   children: ReactNode
-  params: {
+  params: Promise<{
     orgSlug: string
-  }
+  }>
 }
 
 async function getOrganization(slug: string) {

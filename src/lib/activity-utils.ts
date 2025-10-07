@@ -179,6 +179,27 @@ export const activityHelpers = {
   },
 
   /**
+   * Log expense deletion
+   */
+  async logExpenseDeleted(
+    organizationId: string,
+    userId: string,
+    expenseId: string
+  ) {
+    return createActivity({
+      organizationId,
+      userId,
+      type: ActivityType.EXPENSE_DELETED,
+      entityType: 'expense',
+      entityId: expenseId,
+      description: `Deleted expense`,
+      metadata: {
+        expenseId,
+      },
+    })
+  },
+
+  /**
    * Log category creation
    */
   async logCategoryCreated(

@@ -11,6 +11,8 @@ const loginSchema = z.object({
 })
 
 export const authOptions: NextAuthOptions = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
@@ -76,6 +78,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
+    newUser: '/auth/signup',
   },
 }

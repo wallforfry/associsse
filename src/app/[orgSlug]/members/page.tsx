@@ -141,7 +141,7 @@ export default function MembersPage() {
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message)
+        toast.error(error.message)
       } else {
         toast.error('Failed to send invitation')
       }
