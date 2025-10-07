@@ -41,7 +41,7 @@ export function AppSidebar({ organizationName, organizationSlug }: AppSidebarPro
   }
 
   return (
-    <Sidebar>
+    <Sidebar variant="floating">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <Building2 className="h-6 w-6" />
