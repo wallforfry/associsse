@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
-import { initializeStorage } from '@/lib/storage'
 
 export async function GET() {
   try {
-    // Initialize storage on health check
-    await initializeStorage()
-    
     return NextResponse.json({
       status: 'healthy',
       storage: 'initialized',
