@@ -24,7 +24,7 @@ export async function createActivity(data: ActivityData) {
         entityType: data.entityType,
         entityId: data.entityId,
         description: data.description,
-        metadata: data.metadata,
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : null,
       },
       include: {
         user: {
@@ -233,6 +233,57 @@ export const activityHelpers = {
       description: 'User logged in',
       metadata: {
         loginTime: new Date().toISOString(),
+      },
+    })
+  },
+
+  /**
+   * Log bank transactions import
+   */
+  async logBankTransactionsImported(
+    organizationId: string,
+    userId: string,
+    importedCount: number,
+    skippedCount: number,
+    fileName: string
+  ) {
+    return createActivity({
+      organizationId,
+      userId,
+      type: ActivityType.BANK_TRANSACTIONS_IMPORTED,
+      entityType: 'bank_transaction',
+      description: `Imported ${importedCount} bank transactions from ${fileName}`,
+      metadata: {
+        importedCount,
+        skippedCount,
+        fileName,
+      },
+    })
+  },
+
+  /**
+   * Log bank transaction expense association
+   */
+  async logBankTransactionExpenseAssociated(
+    organizationId: string,
+    userId: string,
+    bankTransactionId: string,
+    expenseId: string,
+    amount: number,
+    expenseDescription: string
+  ) {
+    return createActivity({
+      organizationId,
+      userId,
+      type: ActivityType.BANK_TRANSACTION_EXPENSE_ASSOCIATED,
+      entityType: 'bank_transaction',
+      entityId: bankTransactionId,
+      description: `Associated expense "${expenseDescription}" with bank transaction`,
+      metadata: {
+        bankTransactionId,
+        expenseId,
+        amount,
+        expenseDescription,
       },
     })
   },

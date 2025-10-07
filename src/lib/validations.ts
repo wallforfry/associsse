@@ -118,6 +118,45 @@ export const createTransactionSchema = z.object({
 
 export const updateTransactionSchema = createTransactionSchema.partial()
 
+// ===== BANK TRANSACTION SCHEMAS =====
+
+export const bankTransactionCsvRowSchema = z.object({
+  date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Date must be in DD/MM/YYYY format'),
+  valueDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Value date must be in DD/MM/YYYY format'),
+  amount: z.string().transform((val, ctx) => {
+    const num = parseFloat(val.replace(',', '.'))
+    if (isNaN(num)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid amount format',
+      })
+      return z.NEVER
+    }
+    return num
+  }),
+  description: z.string().min(1, 'Description is required'),
+  balance: z.string().transform((val, ctx) => {
+    const num = parseFloat(val.replace(',', '.'))
+    if (isNaN(num)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid balance format',
+      })
+      return z.NEVER
+    }
+    return num
+  }),
+})
+
+export const bankTransactionImportSchema = z.object({
+  transactions: z.array(bankTransactionCsvRowSchema).min(1, 'At least one transaction is required'),
+})
+
+export const associateExpenseSchema = z.object({
+  expenseId: z.string().min(1, 'Expense ID is required'),
+  amount: z.number().positive('Amount must be positive'),
+})
+
 // ===== MEMBERSHIP SCHEMAS =====
 
 export const inviteMemberSchema = z.object({
@@ -175,6 +214,9 @@ export type CreateAccountInput = z.infer<typeof createAccountSchema>
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>
 export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>
+export type BankTransactionCsvRowInput = z.infer<typeof bankTransactionCsvRowSchema>
+export type BankTransactionImportInput = z.infer<typeof bankTransactionImportSchema>
+export type AssociateExpenseInput = z.infer<typeof associateExpenseSchema>
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>
 export type UpdateMembershipInput = z.infer<typeof updateMembershipSchema>
 export type GenerateReportInput = z.infer<typeof generateReportSchema>

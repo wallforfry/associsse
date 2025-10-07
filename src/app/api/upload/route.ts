@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'text/csv']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { message: 'Invalid file type. Only images or PDFs are allowed.' },

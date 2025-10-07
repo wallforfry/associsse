@@ -94,6 +94,7 @@ model Organization {
   chartOfAccounts ChartOfAccount[]
   reports         Report[]
   Transaction     Transaction[]
+  bankTransactions BankTransaction[]
   activities      Activity[]
 
   @@map("organizations")
@@ -198,6 +199,40 @@ model Donation {
   @@map("donations")
 }
 
+// ===== BANK TRANSACTIONS =====
+
+model BankTransaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  hash           String   @unique // Unique hash to identify transaction and avoid duplicates
+  date           DateTime
+  valueDate      DateTime // Date de valeur from CSV
+  amount         Decimal  @db.Decimal(15, 2)
+  description    String   // Libellé from CSV
+  balance        Decimal  @db.Decimal(15, 2) // Solde from CSV
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  expenseAssociations BankTransactionExpense[]
+
+  @@map("bank_transactions")
+}
+
+model BankTransactionExpense {
+  id                 String          @id @default(cuid())
+  bankTransactionId  String
+  expenseId          String
+  amount             Decimal         @db.Decimal(15, 2) // Amount associated from this transaction
+  createdAt          DateTime        @default(now())
+
+  bankTransaction BankTransaction @relation(fields: [bankTransactionId], references: [id], onDelete: Cascade)
+  expense         Expense         @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@unique([bankTransactionId, expenseId])
+  @@map("bank_transaction_expenses")
+}
+
 // ===== EXPENSES =====
 
 model Expense {
@@ -219,6 +254,7 @@ model Expense {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category     Category?    @relation(fields: [categoryId], references: [id])
   createdBy    User         @relation(fields: [createdById], references: [id])
+  bankTransactionAssociations BankTransactionExpense[]
 
   @@map("expenses")
 }
@@ -368,4 +404,6 @@ enum ActivityType {
   ORGANIZATION_UPDATED
   USER_LOGIN
   USER_LOGOUT
+  BANK_TRANSACTIONS_IMPORTED
+  BANK_TRANSACTION_EXPENSE_ASSOCIATED
 }
