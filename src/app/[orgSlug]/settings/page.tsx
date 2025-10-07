@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Building2, User } from "lucide-react"
 import Link from "next/link"
 
-export default function SettingsPage({
+export default async function SettingsPage({
   params,
 }: {
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }) {
-  const { orgSlug } = params
+  const { orgSlug } = await params
 
   return (
     <div className="space-y-6">
