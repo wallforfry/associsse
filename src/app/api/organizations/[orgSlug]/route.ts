@@ -27,9 +27,8 @@ const updateOrganizationSchema = z.object({
 export async function GET(
   request: NextRequest,
   { params }: { params: { orgSlug: string } }
-) {
-  console.log('params', params)
-  try {
+  ) {
+    try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
