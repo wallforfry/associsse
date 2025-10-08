@@ -6,8 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Building2, User } from "lucide-react"
+import { Building2, User, Settings } from "lucide-react"
 import Link from "next/link"
+import { validateRoleBySlug } from '@/lib/auth-utils'
 
 export default async function SettingsPage({
   params,
@@ -15,6 +16,10 @@ export default async function SettingsPage({
   params: Promise<{ orgSlug: string }>
 }) {
   const { orgSlug } = await params
+
+  // Check if user has admin or owner role for technical settings
+  const authResult = await validateRoleBySlug(orgSlug, ['ADMIN', 'OWNER'])
+  const canAccessTechnical = authResult.success
 
   return (
     <div className="space-y-6">
@@ -63,6 +68,27 @@ export default async function SettingsPage({
             </Link>
           </CardContent>
         </Card>
+
+        {canAccessTechnical && (
+          <Card className="justify-between">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Technical
+              </CardTitle>
+              <CardDescription>
+                Advanced technical configuration and maintenance tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href={`/${orgSlug}/settings/technical`}>
+                <Button variant="outline" className="w-full">
+                  Technical Settings
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
