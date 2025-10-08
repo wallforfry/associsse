@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       where: {
         organizationId,
         id: {
-          in: categoryExpenses.map(c => c.categoryId).filter(Boolean),
+          in: categoryExpenses.map(c => c.categoryId).filter((_): _ is string => _ !== null),
         },
       },
       select: {
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate financial trend (cumulative balance)
-    const financialTrend = []
+    const financialTrend: { month: string; balance: number }[] = []
     let runningBalance = 0
     
     monthlyData.forEach((month, index) => {
