@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
         transactionData.date,
         transactionData.amount.toString(),
         transactionData.description,
+        transactionData.balance.toString(),
         membership.organization.id
       )
 

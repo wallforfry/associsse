@@ -6,8 +6,18 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { FileUpload } from '@/components/file-upload'
-import { Upload, Link as LinkIcon, X, Check } from 'lucide-react'
+import { Upload, Link as LinkIcon, X, Check, RefreshCw } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { formatAmount } from '@/lib/bank-utils'
@@ -55,6 +65,17 @@ export default function BanksPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<BankTransaction | null>(null)
   const [associating, setAssociating] = useState(false)
   const [organizationId, setOrganizationId] = useState<string>('')
+  const [recomputingHashes, setRecomputingHashes] = useState(false)
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    title: string
+    description: string
+    onConfirm?: () => void
+  }>({
+    open: false,
+    title: '',
+    description: '',
+  })
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -114,6 +135,15 @@ export default function BanksPage() {
       }
     }
   }, [refreshAllData, selectedTransaction])
+
+  const showAlert = (title: string, description: string, onConfirm?: () => void) => {
+    setAlertDialog({
+      open: true,
+      title,
+      description,
+      onConfirm,
+    })
+  }
 
   useEffect(() => {
     fetchOrganization()
@@ -198,11 +228,11 @@ export default function BanksPage() {
         await refreshAllDataAndUpdateSelected()
       } else {
         const error = await response.json()
-        alert(`Association failed: ${error.message}`)
+        showAlert('Association Failed', `Failed to associate expense: ${error.message}`)
       }
     } catch (error) {
       console.error('Association failed:', error)
-      alert('Association failed. Please try again.')
+      showAlert('Association Failed', 'Failed to associate expense. Please try again.')
     } finally {
       setAssociating(false)
     }
@@ -218,12 +248,44 @@ export default function BanksPage() {
         await refreshAllDataAndUpdateSelected()
       } else {
         const error = await response.json()
-        alert(`Failed to remove association: ${error.message}`)
+        showAlert('Remove Association Failed', `Failed to remove association: ${error.message}`)
       }
     } catch (error) {
       console.error('Failed to remove association:', error)
-      alert('Failed to remove association. Please try again.')
+      showAlert('Remove Association Failed', 'Failed to remove association. Please try again.')
     }
+  }
+
+  const recomputeHashes = async () => {
+    showAlert(
+      'Recompute Transaction Hashes',
+      'This will recompute hashes for all existing bank transactions. This may take a moment. Continue?',
+      async () => {
+        setRecomputingHashes(true)
+        try {
+          const response = await fetch('/api/bank-transactions/recompute-hashes', {
+            method: 'POST',
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            showAlert(
+              'Hash Recomputation Completed',
+              `Updated: ${result.updatedCount} transactions\nErrors: ${result.errorCount}\nTotal: ${result.totalTransactions}`
+            )
+            await refreshAllData()
+          } else {
+            const error = await response.json()
+            showAlert('Recomputation Failed', `Failed to recompute hashes: ${error.error}`)
+          }
+        } catch (error) {
+          console.error('Failed to recompute hashes:', error)
+          showAlert('Recomputation Failed', 'Failed to recompute hashes. Please try again.')
+        } finally {
+          setRecomputingHashes(false)
+        }
+      }
+    )
   }
 
 
@@ -250,27 +312,38 @@ export default function BanksPage() {
           <h1 className="text-3xl font-bold text-gray-900">Bank Transactions</h1>
           <p className="text-gray-600">Manage your bank transactions and associate them with expenses</p>
         </div>
-        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="mr-2 h-4 w-4" />
-              Import CSV
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Import Bank Transactions</DialogTitle>
-              <DialogDescription>
-                Upload a CSV file with your bank transactions. The file should have columns: Date, Date de valeur, Montant, Libellé, Solde
-              </DialogDescription>
-            </DialogHeader>
-            <FileUpload
-              onUpload={handleFileUpload}
-              accept="text/csv"
-              maxSize={5 * 1024 * 1024} // 5MB
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Upload className="mr-2 h-4 w-4" />
+                Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Bank Transactions</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file with your bank transactions. The file should have columns: Date, Date de valeur, Montant, Libellé, Solde
+                </DialogDescription>
+              </DialogHeader>
+              <FileUpload
+                onUpload={handleFileUpload}
+                accept="text/csv"
+                maxSize={5 * 1024 * 1024} // 5MB
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Button
+            variant="outline"
+            onClick={recomputeHashes}
+            disabled={recomputingHashes}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${recomputingHashes ? 'animate-spin' : ''}`} />
+            {recomputingHashes ? 'Recomputing...' : 'Recompute Hashes'}
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -482,6 +555,26 @@ export default function BanksPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Alert Dialog */}
+      <AlertDialog open={alertDialog.open} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription className="whitespace-pre-line">
+              {alertDialog.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            {alertDialog.onConfirm && (
+              <AlertDialogAction onClick={alertDialog.onConfirm}>
+                Continue
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

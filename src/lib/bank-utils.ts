@@ -8,9 +8,10 @@ export function generateTransactionHash(
   date: string,
   amount: string,
   description: string,
+  balance: string,
   organizationId: string
 ): string {
-  const data = `${date}-${amount}-${description}-${organizationId}`
+  const data = `${date}-${amount}-${description}-${balance}-${organizationId}`
   return createHash('sha256').update(data).digest('hex')
 }
 
