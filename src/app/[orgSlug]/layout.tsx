@@ -85,9 +85,3 @@ export default async function OrganizationLayout({
     </DashboardLayout>
   )
 }
-
-export async function generateStaticParams() {
-  // This could be used for static generation if needed
-  // For now, we'll use dynamic routing
-  return []
-}
