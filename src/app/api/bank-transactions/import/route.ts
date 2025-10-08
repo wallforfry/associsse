@@ -4,7 +4,7 @@ import { validateSession } from '@/lib/auth-utils'
 import { bankTransactionImportSchema } from '@/lib/validations'
 import { createActivity } from '@/lib/activity-utils'
 import { ActivityType } from '@/lib/prisma'
-import { generateTransactionHash, parseCSV, parseFrenchDate, handleFileEncoding } from '@/lib/bank-utils'
+import { generateTransactionHash, parseCSV, handleFileEncoding } from '@/lib/bank-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // Import transactions
     for (const transactionData of validatedTransactions) {
       const hash = generateTransactionHash(
-        transactionData.date,
+        transactionData.date.toISOString().split('T')[0],
         transactionData.amount.toString(),
         transactionData.description,
         transactionData.balance.toString(),
@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
         data: {
           organizationId: membership.organization.id,
           hash,
-          date: parseFrenchDate(transactionData.date),
-          valueDate: parseFrenchDate(transactionData.valueDate),
+          date: transactionData.date,
+          valueDate: transactionData.valueDate,
           amount: transactionData.amount,
           description: transactionData.description,
           balance: transactionData.balance

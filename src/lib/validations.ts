@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { parseFrenchDate } from "./bank-utils"
 
 // ===== AUTHENTICATION SCHEMAS =====
 
@@ -121,8 +122,34 @@ export const updateTransactionSchema = createTransactionSchema.partial()
 // ===== BANK TRANSACTION SCHEMAS =====
 
 export const bankTransactionCsvRowSchema = z.object({
-  date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Date must be in DD/MM/YYYY format'),
-  valueDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Value date must be in DD/MM/YYYY format'),
+  date: z
+    .string()
+    .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Date must be in DD/MM/YYYY format')
+    .transform((val, ctx) => {
+      const date = parseFrenchDate(val)
+      if (isNaN(date.getTime())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Invalid date value',
+        })
+        return z.NEVER
+      }
+      return date
+    }),
+  valueDate: z
+    .string()
+    .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Value date must be in DD/MM/YYYY format')
+    .transform((val, ctx) => {
+      const date = parseFrenchDate(val)
+      if (isNaN(date.getTime())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Invalid value date',
+        })
+        return z.NEVER
+      }
+      return date
+    }),
   amount: z.string().transform((val, ctx) => {
     const num = parseFloat(val.replace(',', '.'))
     if (isNaN(num)) {
