@@ -1,9 +1,10 @@
-import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { db } from './db'
-import { compare } from 'bcryptjs'
-import { z } from 'zod'
+import { NextAuthOptions } from "next-auth"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import CredentialsProvider from "next-auth/providers/credentials"
+import { db } from "./db"
+import { compare } from "bcryptjs"
+import { z } from "zod"
+import EmailProvider from "next-auth/providers/email"
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -16,11 +17,15 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM,
+    }),
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         try {
@@ -42,8 +47,8 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Verify password
-          const isPasswordValid = await compare(password, user.password || '')
-          
+          const isPasswordValid = await compare(password, user.password || "")
+
           if (!isPasswordValid) {
             return null
           }
@@ -61,7 +66,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -76,9 +81,25 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
+    async signIn({ user }) {
+      const email = user.email
+      if (!email) {
+        return "/auth/signup"
+      }
+
+      const userExists = await db.user.findUnique({
+        where: { email },
+      })
+
+      if (userExists) {
+        return true
+      } else {
+        return "/auth/signup"
+      }
+    },
   },
   pages: {
-    signIn: '/auth/signin',
-    newUser: '/auth/signup',
+    signIn: "/auth/signin",
+    newUser: "/auth/signup",
   },
 }

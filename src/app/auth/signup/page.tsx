@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,7 @@ const signUpWithOrganizationSchema = signUpSchema.extend({
 
 
 export default function SignUpPage() {
+  const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -37,6 +38,12 @@ export default function SignUpPage() {
     },
   })
   const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/dashboard')
+    }
+  }, [status, session, router])
 
   // Auto-generate slug from organization name
   const generateSlug = (name: string) => {
@@ -100,6 +107,22 @@ export default function SignUpPage() {
     }
   }
 
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Building2 className="mx-auto h-12 w-12 text-blue-600 animate-pulse" />
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render the form if user is authenticated (will redirect)
+  if (status === 'authenticated') {
+    return null
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

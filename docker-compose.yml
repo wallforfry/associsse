@@ -54,6 +54,8 @@ services:
       MINIO_SECRET_KEY: "minioadmin"
       MINIO_BUCKET: "associsse"
       MINIO_USE_SSL: "false"
+      EMAIL_SERVER: ${EMAIL_SERVER}
+      EMAIL_FROM: ${EMAIL_FROM}
       CI: "true"
     ports:
       - "3000:3000"
