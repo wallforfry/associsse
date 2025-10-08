@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ExpenseForm } from '@/components/expense-form'
 import { ExpenseList } from '@/components/expense-list'
 import { Receipt, Plus, DollarSign, TrendingUp } from 'lucide-react'
@@ -142,19 +143,48 @@ export default function ExpensesPage() {
             <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
             <p className="text-gray-600">Track and manage organization expenses</p>
           </div>
+          <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  <Skeleton className="h-4 w-20" />
+                </CardTitle>
+                <Skeleton className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-24 mt-2" />
               </CardContent>
             </Card>
           ))}
         </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div>
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20 mt-1" />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-3 w-12 mt-1" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

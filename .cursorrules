@@ -80,6 +80,21 @@ src/
 - Use Tailwind CSS for styling
 - Implement responsive design
 
+### Loading States & Skeletons
+- **ALWAYS use Skeleton components for loading states** instead of custom spinners or "Loading..." text
+- Import Skeleton from `@/components/ui/skeleton`
+- Create skeleton layouts that match the actual content structure
+- Use appropriate skeleton dimensions (h-4, h-6, h-8, h-10, w-16, w-24, w-32, etc.)
+- For tables: create skeleton rows with proper column widths
+- For cards: use skeleton placeholders for titles, content, and actions
+- For forms: use skeleton inputs and buttons
+- For charts: use skeleton containers with appropriate heights
+- **NEVER use**: `Loader2` spinners, custom `animate-spin` divs, or plain "Loading..." text
+- **NEVER use**: `bg-gray-200 animate-pulse` custom implementations
+- **ALWAYS**: Match skeleton structure to actual content layout
+- **ALWAYS**: Include skeleton for header buttons and actions
+- **ALWAYS**: Use consistent skeleton sizing across the application
+
 ### Testing
 - Use Vitest for unit tests
 - Use React Testing Library for component tests
@@ -201,3 +216,5 @@ src/
 - [ ] Performance implications considered
 - [ ] Documentation updated
 - [ ] Accessibility guidelines followed
+- [ ] **Loading states use Skeleton components (not custom spinners or "Loading..." text)**
+- [ ] **Skeleton layouts match actual content structure**

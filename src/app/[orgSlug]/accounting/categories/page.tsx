@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 import { CategoryForm } from '@/components/category-form'
 import { Tag, Plus, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -109,15 +110,20 @@ export default function CategoriesPage() {
             <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
             <p className="text-gray-600">Manage expense categories</p>
           </div>
+          <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-4 md:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  <Skeleton className="h-4 w-20" />
+                </CardTitle>
+                <Skeleton className="h-4 w-4 rounded-full" />
               </CardHeader>
               <CardContent>
-                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-32 mt-2" />
               </CardContent>
             </Card>
           ))}
