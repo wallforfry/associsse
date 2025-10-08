@@ -58,11 +58,11 @@ export default async function TechnicalSettingsPage({
           </CardHeader>
           <CardContent className="space-y-3">
             <HashRecomputeButton />
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" disabled>
               <Download className="mr-2 h-4 w-4" />
               Export Database
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" disabled>
               <Upload className="mr-2 h-4 w-4" />
               Import Database
             </Button>
@@ -96,7 +96,7 @@ export default async function TechnicalSettingsPage({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Version</span>
               <Badge variant="outline">
-                v1.0.0
+                {process.env.SOURCE_COMMIT || 'unknown'}
               </Badge>
             </div>
           </CardContent>
