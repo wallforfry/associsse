@@ -10,6 +10,11 @@ function getMinioClient(): Client {
     const secretKey = process.env.MINIO_SECRET_KEY
     
     if (!endPoint || !accessKey || !secretKey) {
+      console.error('Minio configuration missing:', {
+        endPoint: !!endPoint,
+        accessKey: !!accessKey,
+        secretKey: !!secretKey
+      })
       throw new Error('Minio configuration is not available. Please check your environment variables.')
     }
     
