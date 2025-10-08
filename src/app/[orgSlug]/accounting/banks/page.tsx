@@ -79,6 +79,7 @@ export default function BanksPage() {
   }, [orgSlug])
 
   const fetchExpenses = useCallback(async () => {
+    if (!organizationId) return
     try {
       const response = await fetch(`/api/expenses?organizationId=${organizationId}`)
       if (response.ok) {
@@ -89,6 +90,30 @@ export default function BanksPage() {
       console.error('Failed to fetch expenses:', error)
     }
   }, [organizationId])
+
+  const refreshAllData = useCallback(async () => {
+    await fetchTransactions()
+    if (organizationId) {
+      await fetchExpenses()
+    }
+  }, [fetchTransactions, fetchExpenses, organizationId])
+
+  const refreshAllDataAndUpdateSelected = useCallback(async () => {
+    await refreshAllData()
+    // Update the selected transaction with fresh data if it exists
+    if (selectedTransaction) {
+      const response = await fetch('/api/bank-transactions')
+      if (response.ok) {
+        const updatedTransactions = await response.json()
+        const updatedTransaction = updatedTransactions.find(
+          (t: BankTransaction) => t.id === selectedTransaction.id
+        )
+        if (updatedTransaction) {
+          setSelectedTransaction(updatedTransaction)
+        }
+      }
+    }
+  }, [refreshAllData, selectedTransaction])
 
   useEffect(() => {
     fetchOrganization()
@@ -110,7 +135,7 @@ export default function BanksPage() {
       })
 
       if (response.ok) {
-        await fetchTransactions()
+        await refreshAllData()
         setImportDialogOpen(false)
 
         return file.name
@@ -141,6 +166,18 @@ export default function BanksPage() {
     return Math.min(Number(expense.amountTTC), remainingAmount)
   }
 
+  const getExpenseRemainingAmount = (expense: Expense) => {
+    // Find all associations for this expense across all transactions
+    const totalAssociated = transactions.reduce((sum, transaction) => {
+      const expenseAssociations = transaction.expenseAssociations.filter(
+        assoc => assoc.expense.id === expense.id
+      )
+      return sum + expenseAssociations.reduce((assocSum, assoc) => assocSum + Number(assoc.amount), 0)
+    }, 0)
+    
+    return Number(expense.amountTTC) - totalAssociated
+  }
+
   const associateExpense = async (expenseId: string, amount: number) => {
     if (!selectedTransaction) return
 
@@ -158,7 +195,7 @@ export default function BanksPage() {
       })
 
       if (response.ok) {
-        await fetchTransactions()
+        await refreshAllDataAndUpdateSelected()
       } else {
         const error = await response.json()
         alert(`Association failed: ${error.message}`)
@@ -178,7 +215,7 @@ export default function BanksPage() {
       })
 
       if (response.ok) {
-        await fetchTransactions()
+        await refreshAllDataAndUpdateSelected()
       } else {
         const error = await response.json()
         alert(`Failed to remove association: ${error.message}`)
@@ -352,12 +389,15 @@ export default function BanksPage() {
           {selectedTransaction && (
             <div className="space-y-6">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">Transaction Amount</div>
+                <div className="text-sm text-gray-600">Transaction Details</div>
                 <div className="text-lg font-semibold">
                   {formatAmount(Number(selectedTransaction.amount))}
                 </div>
                 <div className="text-sm text-gray-600">
-                  Available for association: {formatAmount(getRemainingAmount(selectedTransaction))}
+                  Total: {formatAmount(Math.abs(Number(selectedTransaction.amount)))}
+                </div>
+                <div className="text-sm text-blue-600 font-medium">
+                  Remaining to reconcile: {formatAmount(getRemainingAmount(selectedTransaction))}
                 </div>
               </div>
 
@@ -394,20 +434,30 @@ export default function BanksPage() {
                   <div className="max-h-60 overflow-y-auto space-y-2">
                     {expenses
                       .filter(expense => expense.status === 'APPROVED')
+                      .filter(expense => getExpenseRemainingAmount(expense) > 0)
                       .map((expense) => {
                       const associationAmount = getAssociationAmount(expense, selectedTransaction)
-                      const canAssociate = associationAmount > 0
+                      const expenseRemaining = getExpenseRemainingAmount(expense)
+                      const canAssociate = associationAmount > 0 && expenseRemaining > 0
                       
                       return (
                         <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex-1">
                             <div className="font-medium">{expense.description}</div>
                             <div className="text-sm text-gray-600">
-                              {formatAmount(expense.amountTTC)} • {formatDate(expense.date)}
+                              Total: {formatAmount(expense.amountTTC)} • {formatDate(expense.date)}
+                            </div>
+                            <div className="text-sm text-orange-600">
+                              Remaining to reconcile: {formatAmount(expenseRemaining)}
                             </div>
                             {canAssociate && (
                               <div className="text-xs text-blue-600 mt-1">
                                 Will associate: {formatAmount(associationAmount)}
+                              </div>
+                            )}
+                            {!canAssociate && expenseRemaining <= 0 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                Fully reconciled
                               </div>
                             )}
                           </div>
